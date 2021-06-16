@@ -214,12 +214,20 @@ class Scene(private val window: GameWindow) {
         pointLight.lightColor = Vector3f(abs(sin(t/3f)), abs(sin(t/4f)), abs(sin(t/2)))
         //pointLight.lightColor = Vector3f(0.5f * sin(t) + 0.5f,0.5f * sin(t - 2/3 * PI.toFloat()) + 0.5f, 0.5f * sin(t - 5/3 * PI.toFloat()) + 0.5f)
         when {
+
+
+
+
+
             window.getKeyState(GLFW_KEY_W) -> {
                 if (window.getKeyState(GLFW_KEY_A)) {
                     cycle.rotateLocal(0f,1.5f * dt,0f)
                 }
                 if (window.getKeyState(GLFW_KEY_D)) {
                     cycle.rotateLocal(0f, 1.5f * -dt,0f)
+                }
+                if (window.getKeyState(GLFW_KEY_LEFT_SHIFT)) {
+                    cycle.translateLocal(Vector3f(0f, 0f, 4 * -dt))
                 }
                 cycle.translateLocal(Vector3f(0f, 0f, 2 * -dt))
             }
