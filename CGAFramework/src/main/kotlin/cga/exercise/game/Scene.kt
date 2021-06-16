@@ -244,7 +244,7 @@ class Scene(private val window: GameWindow) {
         oldMousePosY = ypos
 
         if(notFirstFrame) {
-            camera.rotateAroundPoint(0f, toRadians(deltaX.toFloat() * 0.05f), 0f, Vector3f(0f))
+            camera.rotateAroundPoint(0f, toRadians(deltaX.toFloat() * -0.05f), 0f, Vector3f(0f))
         }
 
         notFirstFrame = true
