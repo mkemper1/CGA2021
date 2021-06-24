@@ -89,6 +89,7 @@ class Scene(private val window: GameWindow) {
         val objResMazeTop : OBJLoader.OBJResult = OBJLoader.loadOBJ("assets/models/MazeTop.obj")
         val objMeshListMazeTop : MutableList<OBJLoader.OBJMesh> = objResMazeTop.objects[0].meshes
 
+
         val stride = 8 * 4
         val attrPos = VertexAttribute(3, GL_FLOAT, stride, 0)
         val attrTC = VertexAttribute(2, GL_FLOAT, stride, 3 * 4)
@@ -168,9 +169,14 @@ class Scene(private val window: GameWindow) {
         mazeTop = Renderable(meshListMazeTop)
 
         camera.rotateLocal(Math.toRadians(-20f),0f, 0f)
-        camera.translateLocal(Vector3f(0f, 2f, -1f))
-        cycle = ModelLoader.loadModel("assets/light Cycle/light Cycle/HQ_Movie cycle.obj",
-                toRadians(-90f), toRadians(90f), 0f)?: throw Exception("Renderable can't be NULL!")
+        camera.translateLocal(Vector3f(0f, 1f, 0f))
+        cycle = ModelLoader.loadModel("assets/Light Cycle/Light Cycle/HQ_Movie cycle.obj",
+                toRadians(-0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
+
+
+
+
+
 
         cycle.scaleLocal(Vector3f(0.8f))
         camera.parent = cycle
@@ -214,11 +220,6 @@ class Scene(private val window: GameWindow) {
         pointLight.lightColor = Vector3f(abs(sin(t/3f)), abs(sin(t/4f)), abs(sin(t/2)))
         //pointLight.lightColor = Vector3f(0.5f * sin(t) + 0.5f,0.5f * sin(t - 2/3 * PI.toFloat()) + 0.5f, 0.5f * sin(t - 5/3 * PI.toFloat()) + 0.5f)
         when {
-
-
-
-
-
             window.getKeyState(GLFW_KEY_W) -> {
                 if (window.getKeyState(GLFW_KEY_A)) {
                     cycle.rotateLocal(0f,1.5f * dt,0f)
@@ -252,9 +253,21 @@ class Scene(private val window: GameWindow) {
         oldMousePosY = ypos
 
         if(notFirstFrame) {
-            camera.rotateAroundPoint(0f, toRadians(deltaX.toFloat() * -0.05f), 0f, Vector3f(0f))
-        }
+            /** links-rechts */
+            camera.rotateAroundPoint(0f, toRadians(deltaX.toFloat() * -0.03f), 0f, Vector3f(0f))
 
+            /** hoch-runter */
+            camera.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.05f),0f, 0f)
+
+
+            /** Fliegen mit Taste F */
+            when {
+                window.getKeyState(GLFW_KEY_F) -> {
+                    cycle.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.1f), 0f, 0f)
+                    cycle.rotateAroundPoint(0f, toRadians(deltaX.toFloat() * -0.03f), 0f, Vector3f(0f))
+                }
+            }
+        }
         notFirstFrame = true
     }
 
