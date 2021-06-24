@@ -35,6 +35,8 @@ class Scene(private val window: GameWindow) {
 
     val ground: Renderable
     val sphere: Renderable
+    var player: Renderable
+    var lantern : Renderable
     var cycle : Renderable
 
     /** Labyrint */
@@ -88,6 +90,8 @@ class Scene(private val window: GameWindow) {
 
         val objResMazeTop : OBJLoader.OBJResult = OBJLoader.loadOBJ("assets/models/MazeTop.obj")
         val objMeshListMazeTop : MutableList<OBJLoader.OBJMesh> = objResMazeTop.objects[0].meshes
+
+
 
 
         val stride = 8 * 4
@@ -170,14 +174,20 @@ class Scene(private val window: GameWindow) {
 
         camera.rotateLocal(Math.toRadians(0f),0f, 0f)
         camera.translateLocal(Vector3f(0f, 0.8f, 0f))
+
+
         cycle = ModelLoader.loadModel("assets/Light Cycle/Light Cycle/HQ_Movie cycle.obj", toRadians(-0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
-
-
-        //cycle = ModelLoader.loadModel("assets/among_us_obj/among us.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
+        player = ModelLoader.loadModel("assets/among_us_obj/among us.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
+        lantern = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(-0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
 
 
 
         cycle.scaleLocal(Vector3f(1.8f))
+        lantern.translateLocal(Vector3f(2.1f, 1f, -3.2f))
+        player.scaleLocal(Vector3f(0.008f))
+        player.translateLocal(Vector3f(10f, 3000f, 0f))
+
+
 
         camera.parent = cycle
 
@@ -212,7 +222,8 @@ class Scene(private val window: GameWindow) {
         mazeWalls.render(tronShader)
         mazeFloor.render(tronShader)
         mazeTop.render(tronShader)
-
+        player.render(tronShader)
+        lantern.render(tronShader)
     }
 
     fun update(dt: Float, t: Float) {
@@ -241,6 +252,20 @@ class Scene(private val window: GameWindow) {
                 }
                 cycle.translateLocal(Vector3f(0f, 0f, 2f * dt))
             }
+
+            window.getKeyState(GLFW_KEY_V) -> {
+                camera.parent = lantern
+            }
+            window.getKeyState(GLFW_KEY_B) -> {
+                camera.parent = cycle
+            }
+            window.getKeyState(GLFW_KEY_N) -> {
+                mazeTop.scaleLocal(Vector3f(0.000005f))
+                camera.parent = player
+            }
+
+
+
         }
     }
 
