@@ -168,17 +168,17 @@ class Scene(private val window: GameWindow) {
         mazeFloor = Renderable(meshListMazeFloor)
         mazeTop = Renderable(meshListMazeTop)
 
-        camera.rotateLocal(Math.toRadians(-20f),0f, 0f)
-        camera.translateLocal(Vector3f(0f, 1f, 0f))
-        cycle = ModelLoader.loadModel("assets/Light Cycle/Light Cycle/HQ_Movie cycle.obj",
-                toRadians(-0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
+        camera.rotateLocal(Math.toRadians(0f),0f, 0f)
+        camera.translateLocal(Vector3f(0f, 0.8f, 0f))
+        cycle = ModelLoader.loadModel("assets/Light Cycle/Light Cycle/HQ_Movie cycle.obj", toRadians(-0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
+
+
+        //cycle = ModelLoader.loadModel("assets/among_us_obj/among us.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
 
 
 
+        cycle.scaleLocal(Vector3f(1.8f))
 
-
-
-        cycle.scaleLocal(Vector3f(0.8f))
         camera.parent = cycle
 
         pointLight = PointLight(Vector3f(0f, 2f, 0f), Vector3f(1f, 1f, 0f),
