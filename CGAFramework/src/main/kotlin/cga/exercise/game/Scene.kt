@@ -33,8 +33,10 @@ class Scene(private val window: GameWindow) {
     val bodenmatrix: Matrix4f = Matrix4f()
     val kugelMatrix: Matrix4f = Matrix4f()
 
+    /** Renderables */
     val ground: Renderable
     val sphere: Renderable
+    var mapcameraobjekt: Renderable
     var player: Renderable
     var lantern : Renderable
     var cycle : Renderable
@@ -55,18 +57,21 @@ class Scene(private val window: GameWindow) {
 
     val camera = TronCamera()
 
+    /** Var´s */
     val pointLight : PointLight
     val spotLight: SpotLight
     var notFirstFrame = false
     var oldMousePosX = 0.0
     var oldMousePosY = 0.0
-    var cameracheck = true
+    var cameracheck1 = true
+    var cameracheck2 = false
+    var cameracheck3 = false
+    var cameracheck4 = false
 
-    //scene setup
+    /** Scene Build */
     init {
         staticShader = ShaderProgram("assets/shaders/simple_vert.glsl", "assets/shaders/simple_frag.glsl")
         tronShader = ShaderProgram("assets/shaders/tron_vert.glsl", "assets/shaders/tron_frag.glsl")
-        //initial opengl state
 
         glClearColor(0.0f, 0.0f, 1f, 1.0f); GLError.checkThrow()
 
@@ -76,11 +81,6 @@ class Scene(private val window: GameWindow) {
         glEnable(GL_DEPTH_TEST); GLError.checkThrow()
         glDepthFunc(GL_LESS); GLError.checkThrow()
 
-        //val objResSphere : OBJLoader.OBJResult = OBJLoader.loadOBJ("assets/models/sphere.obj")
-        //val objMeshListSphere : MutableList<OBJLoader.OBJMesh> = objResSphere.objects[0].meshes
-//
-        //val objResGround : OBJLoader.OBJResult = OBJLoader.loadOBJ("assets/models/ground.obj")
-        //val objMeshListGround : MutableList<OBJLoader.OBJMesh> = objResGround.objects[0].meshes
 
         /** Labyrint */
         val objResMazeWalls : OBJLoader.OBJResult = OBJLoader.loadOBJ("assets/models/MazeWall.obj")
@@ -91,8 +91,6 @@ class Scene(private val window: GameWindow) {
 
         val objResMazeTop : OBJLoader.OBJResult = OBJLoader.loadOBJ("assets/models/MazeTop.obj")
         val objMeshListMazeTop : MutableList<OBJLoader.OBJMesh> = objResMazeTop.objects[0].meshes
-
-
 
 
         val stride = 8 * 4
@@ -122,9 +120,6 @@ class Scene(private val window: GameWindow) {
         val groundShininess = 60f
         val groundTCMultiplier = Vector2f(64f)
 
-        // val groundMaterial = Material(groundDiffTexture, groundEmitTexture, groundSpecTexture, groundShininess,
-        //         groundTCMultiplier)
-
         /** Labyrint */
         val mazeWallMaterial = Material(groundDiffTexture, mazeWallsTexture, groundSpecTexture, groundShininess,
             groundTCMultiplier)
@@ -133,15 +128,8 @@ class Scene(private val window: GameWindow) {
         val mazeTopMaterial = Material(groundDiffTexture, mazeTopTexture, groundSpecTexture, groundShininess,
             groundTCMultiplier)
 
-        // for (mesh in objMeshListSphere) {
-        //     meshListSphere.add(Mesh(mesh.vertexData, mesh.indexData, vertexAttributes))
-        // }
-//
-        // for (mesh in objMeshListGround) {
-        //     meshListGround.add(Mesh(mesh.vertexData, mesh.indexData, vertexAttributes, groundMaterial))
-        // }
 
-        /** Labyrint */
+        /** Labyrint mesh */
         for (mesh in objMeshListMazeWalls) {
             meshListMazeWalls.add(Mesh(mesh.vertexData, mesh.indexData, vertexAttributes, mazeWallMaterial))
         }
@@ -152,12 +140,10 @@ class Scene(private val window: GameWindow) {
             meshListMazeTop.add(Mesh(mesh.vertexData, mesh.indexData, vertexAttributes, mazeTopMaterial))
         }
 
+        /** Labyrint Positionen und Render */
         bodenmatrix.scale(0.03f)
         bodenmatrix.rotateX(90f)
-
         mazeWallsMatrix.scale(0.02f)
-
-        /** Labyrint */
         mazeWallsMatrix.scale(0.001f)
         mazeWallsMatrix.translateLocal(Vector3f(0.0f, 0.0f, 10.0f))
 
@@ -173,35 +159,38 @@ class Scene(private val window: GameWindow) {
         mazeFloor = Renderable(meshListMazeFloor)
         mazeTop = Renderable(meshListMazeTop)
 
-        camera.rotateLocal(Math.toRadians(0f),0f, 0f)
-        camera.translateLocal(Vector3f(0f, 0.8f, 0f))
 
-
+        /** Modelloader */
         cycle = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
-        player = ModelLoader.loadModel("assets/among_us_obj/among us.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
+        player = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
+        mapcameraobjekt = ModelLoader.loadModel("assets/among_us_obj/among us.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
         lantern = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(-0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
         mac = ModelLoader.loadModel("assets/models/mac10.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
 
+        /** Camerastart Position */
+        camera.translateLocal(Vector3f(0f, 1.4f, 0f))
+        camera.parent = player
 
+        /** Orbitalecamera Position */
+        mapcameraobjekt.scaleLocal(Vector3f(0.008f))
+        mapcameraobjekt.translateLocal(Vector3f(10f, 3000f, 0f))
+
+        /** Pistole */
+        mac.scaleLocal(Vector3f(0.008f))
+        mac.translateLocal(Vector3f(20f, 150f, -35f))
+        mac.parent = player
+
+        /** Objektplatzierung */
         cycle.scaleLocal(Vector3f(1.8f))
         lantern.translateLocal(Vector3f(2.1f, 1f, -3.2f))
-        player.scaleLocal(Vector3f(0.008f))
-        player.translateLocal(Vector3f(10f, 3000f, 0f))
-        mac.scaleLocal(Vector3f(0.008f))
-        mac.translateLocal(Vector3f(20f, 160f, -35f))
 
 
-        camera.parent = cycle
-
-        pointLight = PointLight(Vector3f(0f, 2f, 0f), Vector3f(1f, 1f, 0f),
-                Vector3f(1f, 0.5f, 0.1f))
-
-        spotLight = SpotLight(Vector3f(0f, 1f, -2f), Vector3f(1f,1f,0.6f),
-                Vector3f(0.5f, 0.05f, 0.01f), Vector2f(toRadians(15f), toRadians(30f)))
+        /** Lichter */
+        pointLight = PointLight(Vector3f(0f, 2f, 0f), Vector3f(1f, 1f, 0f), Vector3f(1f, 0.5f, 0.1f))
+        spotLight = SpotLight(Vector3f(0f, 1f, -2f), Vector3f(1f,1f,0.6f), Vector3f(0.5f, 0.05f, 0.01f), Vector2f(toRadians(15f), toRadians(30f)))
 
         spotLight.rotateLocal(toRadians(-10f), PI.toFloat(),0f)
-
-        pointLight.parent = cycle
+        pointLight.parent = lantern
         spotLight.parent = lantern
 
     }
@@ -223,59 +212,80 @@ class Scene(private val window: GameWindow) {
         mazeWalls.render(tronShader)
         mazeFloor.render(tronShader)
         mazeTop.render(tronShader)
-        player.render(tronShader)
+        mapcameraobjekt.render(tronShader)
         lantern.render(tronShader)
         mac.render(tronShader)
+        player.render(tronShader)
     }
 
     fun update(dt: Float, t: Float) {
 
         pointLight.lightColor = Vector3f(abs(sin(t/3f)), abs(sin(t/4f)), abs(sin(t/2)))
-        //pointLight.lightColor = Vector3f(0.5f * sin(t) + 0.5f,0.5f * sin(t - 2/3 * PI.toFloat()) + 0.5f, 0.5f * sin(t - 5/3 * PI.toFloat()) + 0.5f)
+
         when {
             /** Movement */
             window.getKeyState(GLFW_KEY_W) -> {
                 if (window.getKeyState(GLFW_KEY_A)) {
-                    cycle.rotateLocal(0f,2f * dt,0f)
-                                   }
+                    player.translateLocal(Vector3f(2f * -dt, 0f, 0f))
+                }
                 if (window.getKeyState(GLFW_KEY_D)) {
-                    cycle.rotateLocal(0f, 2f * -dt,0f)
+                    player.translateLocal(Vector3f(2f * dt, 0f, 0f))
                  }
                 if (window.getKeyState(GLFW_KEY_LEFT_SHIFT)) {
-                    cycle.translateLocal(Vector3f(0f, 0f, 4 * -dt))
+                    player.translateLocal(Vector3f(0f, 0f, 4 * -dt))
                 }
-                cycle.translateLocal(Vector3f(0f, 0f, 2 * -dt))
+                player.translateLocal(Vector3f(0f, 0f, 2 * -dt))
             }
             window.getKeyState(GLFW_KEY_S) -> {
                 if (window.getKeyState(GLFW_KEY_A)) {
-                    cycle.rotateLocal(0f,2f * dt,0f)
+                    player.rotateLocal(0f,2f * dt,0f)
                 }
                 if (window.getKeyState(GLFW_KEY_D)) {
-                    cycle.rotateLocal(0f, 2 * -dt,0f)
+                    player.rotateLocal(0f, 2 * -dt,0f)
                 }
-                cycle.translateLocal(Vector3f(0f, 0f, 2f * dt))
+                player.translateLocal(Vector3f(0f, 0f, 2f * dt))
             }
             window.getKeyState(GLFW_KEY_A) -> {
-                cycle.rotateLocal(0f,2 * dt,0f)
+                player.translateLocal(Vector3f(2f * -dt, 0f, 0f))
             }
             window.getKeyState(GLFW_KEY_D) -> {
-                cycle.rotateLocal(0f,2 * -dt,0f)
+                player.translateLocal(Vector3f(2f * dt, 0f, 0f))
             }
 
             /** Cameraview */
+            /** 1st Person */
             window.getKeyState(GLFW_KEY_V) -> {
-                cameracheck = true
-                camera.parent = lantern
+                cameracheck1 = true
+                cameracheck2 = false
+                cameracheck3 = false
+                cameracheck4 = false
+                camera.parent = player
+
             }
+            /** Camera 2 */
             window.getKeyState(GLFW_KEY_B) -> {
-                cameracheck = true
+                cameracheck1 = false
+                cameracheck2 = true
+                cameracheck2 = false
+                cameracheck4 = false
                 camera.parent = cycle
             }
-            /** Livemap */
+            /** Camera 3 */
             window.getKeyState(GLFW_KEY_N) -> {
-                cameracheck = false
+                cameracheck1 = false
+                cameracheck2 = false
+                cameracheck3 = true
+                cameracheck4 = false
+                player.parent = lantern
+            }
+            /** Camera 4 */
+            window.getKeyState(GLFW_KEY_M) -> {
+                cameracheck1 = false
+                cameracheck2 = false
+                cameracheck3 = false
+                cameracheck4 = true
                 mazeTop.scaleLocal(Vector3f(0.000005f))
-                camera.parent = player
+                camera.parent = mapcameraobjekt
             }
 
         }
@@ -289,15 +299,13 @@ class Scene(private val window: GameWindow) {
         oldMousePosX = xpos
         oldMousePosY = ypos
 
-        if(notFirstFrame && cameracheck ==true) {
 
+        /** Camera 1 */
+        if(notFirstFrame && cameracheck1 == true) {
             /** links-rechts */
-            camera.rotateAroundPoint(0f, toRadians(deltaX.toFloat() * -0.03f), 0f, Vector3f(0f))
-            mac.rotateAroundPoint(0f, toRadians(deltaX.toFloat() * -0.03f), 0f, Vector3f(0f))
+            player.rotateLocal(0f, toRadians(deltaX.toFloat() * -0.06f), 0f)
             /** hoch-runter */
             camera.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.05f), 0f, 0f)
-
-
             /** Fliegen mit Taste F */
             when {
                 window.getKeyState(GLFW_KEY_F) -> {
@@ -305,6 +313,15 @@ class Scene(private val window: GameWindow) {
                     cycle.rotateAroundPoint(0f, toRadians(deltaX.toFloat() * -0.03f), 0f, Vector3f(0f))
                 }
             }
+        }
+        notFirstFrame = true
+
+        /** Camera 4 */
+        if(notFirstFrame && cameracheck4 == true) {
+            /** links-rechts */
+            camera.rotateAroundPoint(0f, toRadians(deltaX.toFloat() * -0.03f), 0f, Vector3f(0f))
+            /** hoch-runter */
+            camera.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.05f), 0f, 0f)
         }
         notFirstFrame = true
     }
