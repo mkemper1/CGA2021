@@ -38,6 +38,7 @@ class Scene(private val window: GameWindow) {
     var player: Renderable
     var lantern : Renderable
     var cycle : Renderable
+    var mac : Renderable
 
     /** Labyrint */
     private val meshListMazeWalls = mutableListOf<Mesh>()
@@ -56,10 +57,10 @@ class Scene(private val window: GameWindow) {
 
     val pointLight : PointLight
     val spotLight: SpotLight
-    //MouseParam
     var notFirstFrame = false
     var oldMousePosX = 0.0
     var oldMousePosY = 0.0
+    var cameracheck = true
 
     //scene setup
     init {
@@ -176,17 +177,18 @@ class Scene(private val window: GameWindow) {
         camera.translateLocal(Vector3f(0f, 0.8f, 0f))
 
 
-        cycle = ModelLoader.loadModel("assets/Light Cycle/Light Cycle/HQ_Movie cycle.obj", toRadians(-0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
+        cycle = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
         player = ModelLoader.loadModel("assets/among_us_obj/among us.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
         lantern = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(-0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
-
+        mac = ModelLoader.loadModel("assets/models/mac10.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
 
 
         cycle.scaleLocal(Vector3f(1.8f))
         lantern.translateLocal(Vector3f(2.1f, 1f, -3.2f))
         player.scaleLocal(Vector3f(0.008f))
         player.translateLocal(Vector3f(10f, 3000f, 0f))
-
+        mac.scaleLocal(Vector3f(0.008f))
+        mac.translateLocal(Vector3f(20f, 160f, -35f))
 
 
         camera.parent = cycle
@@ -200,7 +202,7 @@ class Scene(private val window: GameWindow) {
         spotLight.rotateLocal(toRadians(-10f), PI.toFloat(),0f)
 
         pointLight.parent = cycle
-        spotLight.parent = cycle
+        spotLight.parent = lantern
 
     }
 
@@ -217,13 +219,13 @@ class Scene(private val window: GameWindow) {
         cycle.render(tronShader)
 
         tronShader.setUniform("farbe", Vector3f(0f,1f,0f))
-        // ground.render(tronShader)
         tronShader.setUniform("farbe", Vector3f(1f,1f,1f))
         mazeWalls.render(tronShader)
         mazeFloor.render(tronShader)
         mazeTop.render(tronShader)
         player.render(tronShader)
         lantern.render(tronShader)
+        mac.render(tronShader)
     }
 
     fun update(dt: Float, t: Float) {
@@ -231,13 +233,14 @@ class Scene(private val window: GameWindow) {
         pointLight.lightColor = Vector3f(abs(sin(t/3f)), abs(sin(t/4f)), abs(sin(t/2)))
         //pointLight.lightColor = Vector3f(0.5f * sin(t) + 0.5f,0.5f * sin(t - 2/3 * PI.toFloat()) + 0.5f, 0.5f * sin(t - 5/3 * PI.toFloat()) + 0.5f)
         when {
+            /** Movement */
             window.getKeyState(GLFW_KEY_W) -> {
                 if (window.getKeyState(GLFW_KEY_A)) {
-                    cycle.rotateLocal(0f,1.5f * dt,0f)
-                }
+                    cycle.rotateLocal(0f,2f * dt,0f)
+                                   }
                 if (window.getKeyState(GLFW_KEY_D)) {
-                    cycle.rotateLocal(0f, 1.5f * -dt,0f)
-                }
+                    cycle.rotateLocal(0f, 2f * -dt,0f)
+                 }
                 if (window.getKeyState(GLFW_KEY_LEFT_SHIFT)) {
                     cycle.translateLocal(Vector3f(0f, 0f, 4 * -dt))
                 }
@@ -245,26 +248,35 @@ class Scene(private val window: GameWindow) {
             }
             window.getKeyState(GLFW_KEY_S) -> {
                 if (window.getKeyState(GLFW_KEY_A)) {
-                    cycle.rotateLocal(0f,1.5f * dt,0f)
+                    cycle.rotateLocal(0f,2f * dt,0f)
                 }
                 if (window.getKeyState(GLFW_KEY_D)) {
-                    cycle.rotateLocal(0f, 1.5f * -dt,0f)
+                    cycle.rotateLocal(0f, 2 * -dt,0f)
                 }
                 cycle.translateLocal(Vector3f(0f, 0f, 2f * dt))
             }
+            window.getKeyState(GLFW_KEY_A) -> {
+                cycle.rotateLocal(0f,2 * dt,0f)
+            }
+            window.getKeyState(GLFW_KEY_D) -> {
+                cycle.rotateLocal(0f,2 * -dt,0f)
+            }
 
+            /** Cameraview */
             window.getKeyState(GLFW_KEY_V) -> {
+                cameracheck = true
                 camera.parent = lantern
             }
             window.getKeyState(GLFW_KEY_B) -> {
+                cameracheck = true
                 camera.parent = cycle
             }
+            /** Livemap */
             window.getKeyState(GLFW_KEY_N) -> {
+                cameracheck = false
                 mazeTop.scaleLocal(Vector3f(0.000005f))
                 camera.parent = player
             }
-
-
 
         }
     }
@@ -277,24 +289,28 @@ class Scene(private val window: GameWindow) {
         oldMousePosX = xpos
         oldMousePosY = ypos
 
-        if(notFirstFrame) {
+        if(notFirstFrame && cameracheck ==true) {
+
             /** links-rechts */
             camera.rotateAroundPoint(0f, toRadians(deltaX.toFloat() * -0.03f), 0f, Vector3f(0f))
-
+            mac.rotateAroundPoint(0f, toRadians(deltaX.toFloat() * -0.03f), 0f, Vector3f(0f))
             /** hoch-runter */
-            camera.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.05f),0f, 0f)
+            camera.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.05f), 0f, 0f)
 
 
             /** Fliegen mit Taste F */
             when {
                 window.getKeyState(GLFW_KEY_F) -> {
-                    cycle.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.1f), 0f, 0f)
+                cycle.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.1f), 0f, 0f)
                     cycle.rotateAroundPoint(0f, toRadians(deltaX.toFloat() * -0.03f), 0f, Vector3f(0f))
                 }
             }
         }
         notFirstFrame = true
     }
+
+
+
 
     fun cleanup() {}
 }
