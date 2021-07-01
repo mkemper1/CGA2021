@@ -187,7 +187,8 @@ class Scene(private val window: GameWindow) {
 
         /** Lichter */
         pointLight = PointLight(Vector3f(0f, 2f, 0f), Vector3f(1f, 1f, 0f), Vector3f(1f, 0.5f, 0.1f))
-        spotLight = SpotLight(Vector3f(0f, 1f, -2f), Vector3f(1f,1f,0.6f), Vector3f(0.5f, 0.05f, 0.01f), Vector2f(toRadians(15f), toRadians(30f)))
+
+        spotLight = SpotLight(Vector3f(0f, 1f, -1f), Vector3f(2f,2f,0.1f), Vector3f(0.1f, 0.01f, 0.01f), Vector2f(toRadians(150f), toRadians(30f)))
 
         spotLight.rotateLocal(toRadians(-10f), PI.toFloat(),0f)
         pointLight.parent = lantern
@@ -260,7 +261,6 @@ class Scene(private val window: GameWindow) {
                 cameracheck3 = false
                 cameracheck4 = false
                 camera.parent = player
-
             }
             /** Camera 2 */
             window.getKeyState(GLFW_KEY_B) -> {
@@ -309,8 +309,8 @@ class Scene(private val window: GameWindow) {
             /** Fliegen mit Taste F */
             when {
                 window.getKeyState(GLFW_KEY_F) -> {
-                cycle.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.1f), 0f, 0f)
-                    cycle.rotateAroundPoint(0f, toRadians(deltaX.toFloat() * -0.03f), 0f, Vector3f(0f))
+                player.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.1f), 0f, 0f)
+                    player.rotateLocal(0f, toRadians(deltaX.toFloat() * -0.06f), 0f)
                 }
             }
         }
