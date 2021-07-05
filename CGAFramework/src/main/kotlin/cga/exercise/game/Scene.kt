@@ -20,6 +20,7 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11.*
+import kotlin.concurrent.thread
 
 
 /**
@@ -187,9 +188,7 @@ class Scene(private val window: GameWindow) {
 
         /** Lichter */
         pointLight = PointLight(Vector3f(0f, 2f, 0f), Vector3f(1f, 1f, 0f), Vector3f(1f, 0.5f, 0.1f))
-
         spotLight = SpotLight(Vector3f(0f, 1f, -1f), Vector3f(2f,2f,0.1f), Vector3f(0.1f, 0.01f, 0.01f), Vector2f(toRadians(150f), toRadians(30f)))
-
         spotLight.rotateLocal(toRadians(-10f), PI.toFloat(),0f)
         pointLight.parent = lantern
         spotLight.parent = lantern
@@ -228,6 +227,8 @@ class Scene(private val window: GameWindow) {
             window.getKeyState(GLFW_KEY_W) -> {
                 if (window.getKeyState(GLFW_KEY_A)) {
                     player.translateLocal(Vector3f(2f * -dt, 0f, 0f))
+                    print("test " +
+                            "")
                 }
                 if (window.getKeyState(GLFW_KEY_D)) {
                     player.translateLocal(Vector3f(2f * dt, 0f, 0f))
@@ -252,6 +253,10 @@ class Scene(private val window: GameWindow) {
             window.getKeyState(GLFW_KEY_D) -> {
                 player.translateLocal(Vector3f(2f * dt, 0f, 0f))
             }
+
+
+
+
 
             /** Cameraview */
             /** 1st Person */
@@ -291,7 +296,8 @@ class Scene(private val window: GameWindow) {
         }
     }
 
-    fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {}
+    fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {
+    }
 
     fun onMouseMove(xpos: Double, ypos: Double) {
         val deltaX = xpos - oldMousePosX
