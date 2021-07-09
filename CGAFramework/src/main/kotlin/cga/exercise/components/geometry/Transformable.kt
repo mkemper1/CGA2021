@@ -69,4 +69,5 @@ open class Transformable : ITransformable {
     }
 
     override fun getLocalModelMatrix(): Matrix4f = Matrix4f(modelMatrix)
+
 }

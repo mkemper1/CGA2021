@@ -13,13 +13,11 @@ import cga.framework.GLError
 import cga.framework.GameWindow
 import cga.framework.ModelLoader
 import cga.framework.OBJLoader
-import org.joml.Math
+import org.joml.*
 import org.joml.Math.*
-import org.joml.Matrix4f
-import org.joml.Vector2f
-import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.system.CallbackI
 import kotlin.concurrent.thread
 
 
@@ -31,8 +29,10 @@ class Scene(private val window: GameWindow) {
     private val tronShader: ShaderProgram
     private val meshListSphere = mutableListOf<Mesh>()
     private val meshListGround = mutableListOf<Mesh>()
+
     val bodenmatrix: Matrix4f = Matrix4f()
     val kugelMatrix: Matrix4f = Matrix4f()
+
 
     /** Renderables */
     val ground: Renderable
@@ -47,16 +47,36 @@ class Scene(private val window: GameWindow) {
     private val meshListMazeWalls = mutableListOf<Mesh>()
     private val meshListMazeFloor = mutableListOf<Mesh>()
     private val meshListMazeTop = mutableListOf<Mesh>()
+    private val meshListCube = mutableListOf<Mesh>()
+
 
     val mazeWallsMatrix: Matrix4f = Matrix4f()
     val mazeFloorMatrix: Matrix4f = Matrix4f()
     val mazeTopMatrix: Matrix4f = Matrix4f()
+    val cubeMatrix: Matrix4f = Matrix4f()
+
 
     val mazeWalls : Renderable
     val mazeFloor : Renderable
     val mazeTop : Renderable
 
+    var moveablewall :Renderable
+
+
+    var wall : Renderable
+    var wall1 : Renderable
+    var wall2 : Renderable
+    var wall3 : Renderable
+    var wall4 : Renderable
+    var wall5 : Renderable
+    var wall6 : Renderable
+    var wall7 : Renderable
+
+
     val camera = TronCamera()
+
+    val objList = mutableListOf<Renderable>()
+    val wallHitbox = mutableListOf<Float>()
 
     /** Var´s */
     val pointLight : PointLight
@@ -68,6 +88,7 @@ class Scene(private val window: GameWindow) {
     var cameracheck2 = false
     var cameracheck3 = false
     var cameracheck4 = false
+    var alteslabyrintcheck = true
 
     /** Scene Build */
     init {
@@ -87,11 +108,15 @@ class Scene(private val window: GameWindow) {
         val objResMazeWalls : OBJLoader.OBJResult = OBJLoader.loadOBJ("assets/models/MazeWall.obj")
         val objMeshListMazeWalls : MutableList<OBJLoader.OBJMesh> = objResMazeWalls.objects[0].meshes
 
-        val objResMazeFloor : OBJLoader.OBJResult = OBJLoader.loadOBJ("assets/models/MazeFloor.obj")
+        val objResMazeFloor : OBJLoader.OBJResult = OBJLoader.loadOBJ("assets/models/MazeTop.obj")
         val objMeshListMazeFloor : MutableList<OBJLoader.OBJMesh> = objResMazeFloor.objects[0].meshes
 
         val objResMazeTop : OBJLoader.OBJResult = OBJLoader.loadOBJ("assets/models/MazeTop.obj")
         val objMeshListMazeTop : MutableList<OBJLoader.OBJMesh> = objResMazeTop.objects[0].meshes
+
+        val objResCube : OBJLoader.OBJResult = OBJLoader.loadOBJ("assets/models/Cube.obj")
+        val objMeshListCube : MutableList<OBJLoader.OBJMesh> = objResCube.objects[0].meshes
+
 
 
         val stride = 8 * 4
@@ -114,9 +139,12 @@ class Scene(private val window: GameWindow) {
         val mazeFloorTexture = Texture2D("assets/textures/pexels_shit.png", true)
         val mazeTopTexture = Texture2D("assets/textures/pexels_shit.png", true)
 
+        val cubeTexture = Texture2D("assets/textures/brick_shit.png", true)
+
         mazeWallsTexture.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
         mazeFloorTexture.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
         mazeTopTexture.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
+        cubeTexture.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
 
         val groundShininess = 60f
         val groundTCMultiplier = Vector2f(64f)
@@ -128,6 +156,11 @@ class Scene(private val window: GameWindow) {
             groundTCMultiplier)
         val mazeTopMaterial = Material(groundDiffTexture, mazeTopTexture, groundSpecTexture, groundShininess,
             groundTCMultiplier)
+
+        val cubeMaterial = Material(groundDiffTexture, cubeTexture, groundSpecTexture, groundShininess,
+            groundTCMultiplier)
+
+
 
 
         /** Labyrint mesh */
@@ -141,24 +174,39 @@ class Scene(private val window: GameWindow) {
             meshListMazeTop.add(Mesh(mesh.vertexData, mesh.indexData, vertexAttributes, mazeTopMaterial))
         }
 
-        /** Labyrint Positionen und Render */
-        bodenmatrix.scale(0.03f)
+        for (mesh in objMeshListCube) {
+            meshListCube.add(Mesh(mesh.vertexData, mesh.indexData, vertexAttributes, cubeMaterial))
+        }
+
+        bodenmatrix.scale(1f)
         bodenmatrix.rotateX(90f)
-        mazeWallsMatrix.scale(0.02f)
-        mazeWallsMatrix.scale(0.001f)
-        mazeWallsMatrix.translateLocal(Vector3f(0.0f, 0.0f, 10.0f))
 
-        mazeFloorMatrix.scale(0.001f)
-        mazeFloorMatrix.translateLocal(Vector3f(0.0f, 0.0f, 10.0f))
+        mazeWallsMatrix.scale(1f)
+        mazeWallsMatrix.translateLocal(Vector3f(0.0f, 0.0f, 0.0f))
 
-        mazeTopMatrix.scale(0.001f)
-        mazeTopMatrix.translateLocal(Vector3f(0.0f, 0.0f, 10.0f))
+        mazeFloorMatrix.scale(1f)
+        mazeFloorMatrix.translateLocal(Vector3f(0.0f, 0.0f, 0.0f))
+
+        cubeMatrix.scale(10f)
+        cubeMatrix.translateLocal(Vector3f(0.0f, 0.0f, 0.0f))
+
+        mazeTopMatrix.scale(1f)
+        mazeTopMatrix.translateLocal(Vector3f(0.0f, 0.0f, 0.0f))
+
+
+
+         /** Labyrint Positionen und Render */
 
         ground = Renderable(meshListGround)
         sphere = Renderable(meshListSphere)
         mazeWalls = Renderable(meshListMazeWalls)
         mazeFloor = Renderable(meshListMazeFloor)
         mazeTop = Renderable(meshListMazeTop)
+        
+        mazeFloor.scaleLocal(Vector3f(3f))
+        mazeFloor.translateLocal(Vector3f(0f,-4.5f,0f))
+
+        mazeTop.translateLocal(Vector3f(0f,1f,0f))
 
 
         /** Modelloader */
@@ -168,9 +216,26 @@ class Scene(private val window: GameWindow) {
         lantern = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(-0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
         mac = ModelLoader.loadModel("assets/models/mac10.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
 
+        moveablewall = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+
+        wall = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+        wall1 = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+        wall2 = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+        wall3 = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+        wall4 = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+        wall5 = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+        wall6 = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+        wall7 = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+
+
         /** Camerastart Position */
-        camera.translateLocal(Vector3f(0f, 1.4f, 0f))
         camera.parent = player
+        camera.translateLocal(Vector3f(0f, 1.4f, 0f))
+        
+
+        /** Playerstart Position */ 0 
+        player.translateLocal(Vector3f(0f, 0f, -25f))
+        player.rotateLocal(0f, toRadians(180f), 0f)
 
         /** Orbitalecamera Position */
         mapcameraobjekt.scaleLocal(Vector3f(0.008f))
@@ -183,17 +248,88 @@ class Scene(private val window: GameWindow) {
 
         /** Objektplatzierung */
         cycle.scaleLocal(Vector3f(1.8f))
-        lantern.translateLocal(Vector3f(2.1f, 1f, -3.2f))
+        lantern.translateLocal(Vector3f(5f, 1f, 0f))
 
 
         /** Lichter */
         pointLight = PointLight(Vector3f(0f, 2f, 0f), Vector3f(1f, 1f, 0f), Vector3f(1f, 0.5f, 0.1f))
         spotLight = SpotLight(Vector3f(0f, 1f, -1f), Vector3f(2f,2f,0.1f), Vector3f(0.1f, 0.01f, 0.01f), Vector2f(toRadians(150f), toRadians(30f)))
         spotLight.rotateLocal(toRadians(-10f), PI.toFloat(),0f)
-        pointLight.parent = lantern
-        spotLight.parent = lantern
+        pointLight.parent = mapcameraobjekt
+        spotLight.parent = mapcameraobjekt
+
+
+
+
+
+
+
+
+        /** Mauern */
+
+        moveablewall.scaleLocal(Vector3f(0.5f))
+        moveablewall.translateLocal(Vector3f(-35f, 0.0f, 0f))
+
+
+
+        wall.scaleLocal(Vector3f(0.5f))
+        wall1.scaleLocal(Vector3f(0.5f))
+        wall2.scaleLocal(Vector3f(0.5f))
+        wall3.scaleLocal(Vector3f(0.5f))
+        wall4.scaleLocal(Vector3f(0.5f))
+        wall5.scaleLocal(Vector3f(0.5f))
+        wall6.scaleLocal(Vector3f(0.5f))
+        wall7.scaleLocal(Vector3f(0.5f))
+
+
+        objList.add(wall1)
+        objList.add(wall2)
+        objList.add(wall3)
+        objList.add(wall4)
+        objList.add(wall5)
+        objList.add(wall6)
+        objList.add(wall7)
+
+        wall.translateLocal(Vector3f(0f, 0.0f, 0f))
+        wall1.translateLocal(Vector3f(20f, 0.0f, 0f))
+        wall2.translateLocal(Vector3f(40f, 0.0f, 0f))
+        wall3.translateLocal(Vector3f(60f, 0.0f, 0f))
+
+        wall4.translateLocal(Vector3f(20f, 0.0f, -20f))
+        wall5.translateLocal(Vector3f(40f, 0.0f, -20f))
+        wall6.translateLocal(Vector3f(60f, 0.0f, -20f))
+
+        wall7.translateLocal(Vector3f(70f, 0.0f, -10f))
+        /** translate weicht um 10f ab weil er sich in der mitte dreht */
+        wall7.rotateLocal(0f, toRadians(90f), 0f)
+
+
+        /** Mauern Hitbox */
+
+
+        wallHitbox.add(moveablewall.getPosition().x)
+        wallHitbox.add(moveablewall.getPosition().z)
+
+        /** Steuerung Info an Console*/
+        println("Steuerung:")                                                                       
+        println("Spielfigurbewegen: W,A,S,D und Maus:")                                             
+        println("Spielfigurbewegen: F für Fliegen und Shift für Sprinten:")                         
+        println("Moveable Mauer: T,F,G,H   wo bei T die Mauer auf der X Achse liegt")               
+        println("Altes Labyrint sichtbar / unsichtbar machen mit C")
+        println("")                                                                                 
+        println("Kameras")                                                                          
+        println("V für Spielfigurkamera")                                                           
+        println("B für Bewegende Wand Kamera")                                                      
+        println("N für die kleine Laterne auf dem Boden")                                           
+        println("M für die Orbitalekamera")                                                         
+                                                                                                    
+
 
     }
+
+
+
+
 
     fun render(dt: Float, t: Float) {
 
@@ -216,23 +352,53 @@ class Scene(private val window: GameWindow) {
         lantern.render(tronShader)
         mac.render(tronShader)
         player.render(tronShader)
+
+        moveablewall.render(tronShader)
+
+        wall.render(tronShader)
+        wall1.render(tronShader)
+        wall2.render(tronShader)
+        wall3.render(tronShader)
+        wall4.render(tronShader)
+        wall5.render(tronShader)
+        wall6.render(tronShader)
+        wall7.render(tronShader)
     }
+
+
+
+
+
+
 
     fun update(dt: Float, t: Float) {
 
         pointLight.lightColor = Vector3f(abs(sin(t/3f)), abs(sin(t/4f)), abs(sin(t/2)))
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
         when {
             /** Movement */
             window.getKeyState(GLFW_KEY_W) -> {
                 if (window.getKeyState(GLFW_KEY_A)) {
                     player.translateLocal(Vector3f(2f * -dt, 0f, 0f))
-                    print("test " +
-                            "")
                 }
                 if (window.getKeyState(GLFW_KEY_D)) {
                     player.translateLocal(Vector3f(2f * dt, 0f, 0f))
-                 }
+                }
                 if (window.getKeyState(GLFW_KEY_LEFT_SHIFT)) {
                     player.translateLocal(Vector3f(0f, 0f, 4 * -dt))
                 }
@@ -240,10 +406,10 @@ class Scene(private val window: GameWindow) {
             }
             window.getKeyState(GLFW_KEY_S) -> {
                 if (window.getKeyState(GLFW_KEY_A)) {
-                    player.rotateLocal(0f,2f * dt,0f)
+                    player.rotateLocal(0f, 2f * dt, 0f)
                 }
                 if (window.getKeyState(GLFW_KEY_D)) {
-                    player.rotateLocal(0f, 2 * -dt,0f)
+                    player.rotateLocal(0f, 2 * -dt, 0f)
                 }
                 player.translateLocal(Vector3f(0f, 0f, 2f * dt))
             }
@@ -253,6 +419,59 @@ class Scene(private val window: GameWindow) {
             window.getKeyState(GLFW_KEY_D) -> {
                 player.translateLocal(Vector3f(2f * dt, 0f, 0f))
             }
+
+            /** wall Bewegung */
+
+            window.getKeyState(GLFW_KEY_T) -> {
+                for (obj in objList) {
+                    if (collisionTest(moveablewall, obj, 'T')) moveablewall.translateLocal(
+                        Vector3f(
+                            0.05f,
+                            0.0f,
+                            0.0f
+                        )
+                    ) else moveablewall.translateLocal(Vector3f(-0.05f, 0.0f, 0.0f))
+                }
+            }
+
+            window.getKeyState(GLFW_KEY_H) -> {
+                for (obj in objList) {
+                    if (collisionTest(moveablewall, obj, 'H')) moveablewall.translateLocal(
+                        Vector3f(
+                            0.0f,
+                            0.0f,
+                            0.05f
+                        )
+                    ) else moveablewall.translateLocal(Vector3f(0.0f, 0.0f, -0.05f))
+                }
+            }
+
+            window.getKeyState(GLFW_KEY_F) -> {
+                for (obj in objList) {
+                    if (collisionTest(moveablewall, obj, 'F')) moveablewall.translateLocal(
+                        Vector3f(
+                            0.0f,
+                            0.0f,
+                            -0.05f
+                        )
+                    ) else moveablewall.translateLocal(Vector3f(0.0f, 0.0f, 0.05f))
+                }
+
+            }
+
+            window.getKeyState(GLFW_KEY_G) -> {
+                for (obj in objList) {
+                    if (collisionTest(moveablewall, obj, 'G')) moveablewall.translateLocal(
+                        Vector3f(
+                            -0.05f,
+                            0.0f,
+                            0.0f
+                        )
+                    ) else moveablewall.translateLocal(Vector3f(0.05f, 0.0f, 0.0f))
+                }
+            }
+
+
 
 
 
@@ -267,13 +486,13 @@ class Scene(private val window: GameWindow) {
                 cameracheck4 = false
                 camera.parent = player
             }
-            /** Camera 2 */
+            /** Camera moveablewall */
             window.getKeyState(GLFW_KEY_B) -> {
                 cameracheck1 = false
-                cameracheck2 = true
                 cameracheck2 = false
-                cameracheck4 = false
-                camera.parent = cycle
+                cameracheck2 = false
+                cameracheck4 = true
+                camera.parent = moveablewall
             }
             /** Camera 3 */
             window.getKeyState(GLFW_KEY_N) -> {
@@ -293,7 +512,59 @@ class Scene(private val window: GameWindow) {
                 camera.parent = mapcameraobjekt
             }
 
+            window.getKeyState(GLFW_KEY_C) -> {
+
+                if (alteslabyrintcheck == true) {
+                    mazeWalls.translateLocal(Vector3f(0f, -100f, 0f))
+                    alteslabyrintcheck = false
+                }
+                else{
+                    mazeWalls.translateLocal(Vector3f(0f, 100f, 0f))
+                    alteslabyrintcheck = true
+                }
+
+                                        }
+
         }
+    }
+
+    fun collisionTest(firstMesh: Renderable, secoundMesh: Renderable, key: Char): Boolean {
+
+        var move = false
+
+        when {
+
+            key == 'T' -> {
+                if (firstMesh.getPosition().x + 1 > secoundMesh.getPosition().x - 1 && firstMesh.getPosition().x - 1 < secoundMesh.getPosition().x - 1) {
+                    if (firstMesh.getPosition().z - 1 > secoundMesh.getPosition().z + 0.9) move = true
+                    if (firstMesh.getPosition().z + 1 < secoundMesh.getPosition().z - 0.9) move = true
+                } else move = true
+            }
+
+            key == 'H' -> {
+                if(firstMesh.getWorldPosition().z + 1 > secoundMesh.getPosition().z - 1 && firstMesh.getWorldPosition().z - 1 < secoundMesh.getWorldPosition().z - 1) {
+                    if (firstMesh.getWorldPosition().x - 1 > secoundMesh.getPosition().x + 0.9) move = true
+                    if (firstMesh.getWorldPosition().x + 1 < secoundMesh.getPosition().x - 0.9) move = true
+                } else move = true
+            }
+
+            key == 'F' -> {
+                if(firstMesh.getPosition().z - 1 < secoundMesh.getPosition().z + 1 && firstMesh.getPosition().z + 1 > secoundMesh.getPosition().z + 1) {
+                    if (firstMesh.getPosition().x - 1 > secoundMesh.getPosition().x + 0.9) move = true
+                    if (firstMesh.getPosition().x + 1 < secoundMesh.getPosition().x - 0.9) move = true
+                } else move = true
+            }
+
+            key == 'G' -> {
+                if (firstMesh.getPosition().x - 1 < secoundMesh.getPosition().x + 1 && firstMesh.getPosition().x + 1 > secoundMesh.getPosition().x + 1) {
+                    if (firstMesh.getPosition().z - 1 > secoundMesh.getPosition().z + 0.9) move = true
+                    if (firstMesh.getPosition().z + 1 < secoundMesh.getPosition().z - 0.9) move = true
+                } else move = true
+            }
+        }
+
+        return move
+
     }
 
     fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {
