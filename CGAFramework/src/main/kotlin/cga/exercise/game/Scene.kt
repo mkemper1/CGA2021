@@ -18,6 +18,7 @@ import org.joml.Math.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.system.CallbackI
+import java.util.*
 import kotlin.concurrent.thread
 
 
@@ -27,16 +28,9 @@ import kotlin.concurrent.thread
 class Scene(private val window: GameWindow) {
     private val staticShader: ShaderProgram
     private val tronShader: ShaderProgram
-    private val meshListSphere = mutableListOf<Mesh>()
-    private val meshListGround = mutableListOf<Mesh>()
-
-    val bodenmatrix: Matrix4f = Matrix4f()
-    val kugelMatrix: Matrix4f = Matrix4f()
-
+    private val walls = mutableListOf<Renderable>()
 
     /** Renderables */
-    val ground: Renderable
-    val sphere: Renderable
     var mapcameraobjekt: Renderable
     var player: Renderable
     var lantern : Renderable
@@ -44,33 +38,13 @@ class Scene(private val window: GameWindow) {
     var mac : Renderable
 
     /** Labyrint */
-    private val meshListMazeWalls = mutableListOf<Mesh>()
     private val meshListMazeFloor = mutableListOf<Mesh>()
     private val meshListMazeTop = mutableListOf<Mesh>()
-    private val meshListCube = mutableListOf<Mesh>()
 
-
-    val mazeWallsMatrix: Matrix4f = Matrix4f()
-    val mazeFloorMatrix: Matrix4f = Matrix4f()
-    val mazeTopMatrix: Matrix4f = Matrix4f()
-    val cubeMatrix: Matrix4f = Matrix4f()
-
-
-    val mazeWalls : Renderable
     val mazeFloor : Renderable
     val mazeTop : Renderable
 
     var moveablewall :Renderable
-
-
-    var wall : Renderable
-    var wall1 : Renderable
-    var wall2 : Renderable
-    var wall3 : Renderable
-    var wall4 : Renderable
-    var wall5 : Renderable
-    var wall6 : Renderable
-    var wall7 : Renderable
 
 
     val camera = TronCamera()
@@ -105,19 +79,12 @@ class Scene(private val window: GameWindow) {
 
 
         /** Labyrint */
-        val objResMazeWalls : OBJLoader.OBJResult = OBJLoader.loadOBJ("assets/models/MazeWall.obj")
-        val objMeshListMazeWalls : MutableList<OBJLoader.OBJMesh> = objResMazeWalls.objects[0].meshes
 
         val objResMazeFloor : OBJLoader.OBJResult = OBJLoader.loadOBJ("assets/models/MazeTop.obj")
         val objMeshListMazeFloor : MutableList<OBJLoader.OBJMesh> = objResMazeFloor.objects[0].meshes
 
         val objResMazeTop : OBJLoader.OBJResult = OBJLoader.loadOBJ("assets/models/MazeTop.obj")
         val objMeshListMazeTop : MutableList<OBJLoader.OBJMesh> = objResMazeTop.objects[0].meshes
-
-        val objResCube : OBJLoader.OBJResult = OBJLoader.loadOBJ("assets/models/Cube.obj")
-        val objMeshListCube : MutableList<OBJLoader.OBJMesh> = objResCube.objects[0].meshes
-
-
 
         val stride = 8 * 4
         val attrPos = VertexAttribute(3, GL_FLOAT, stride, 0)
@@ -135,38 +102,25 @@ class Scene(private val window: GameWindow) {
         groundSpecTexture.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
 
         /** Labyrint */
-        val mazeWallsTexture = Texture2D("assets/textures/brick_shit.png", true)
         val mazeFloorTexture = Texture2D("assets/textures/pexels_shit.png", true)
         val mazeTopTexture = Texture2D("assets/textures/pexels_shit.png", true)
 
-        val cubeTexture = Texture2D("assets/textures/brick_shit.png", true)
-
-        mazeWallsTexture.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
         mazeFloorTexture.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
         mazeTopTexture.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        cubeTexture.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
 
         val groundShininess = 60f
         val groundTCMultiplier = Vector2f(64f)
 
         /** Labyrint */
-        val mazeWallMaterial = Material(groundDiffTexture, mazeWallsTexture, groundSpecTexture, groundShininess,
-            groundTCMultiplier)
         val mazeFloorMaterial = Material(groundDiffTexture, mazeFloorTexture, groundSpecTexture, groundShininess,
             groundTCMultiplier)
         val mazeTopMaterial = Material(groundDiffTexture, mazeTopTexture, groundSpecTexture, groundShininess,
-            groundTCMultiplier)
-
-        val cubeMaterial = Material(groundDiffTexture, cubeTexture, groundSpecTexture, groundShininess,
             groundTCMultiplier)
 
 
 
 
         /** Labyrint mesh */
-        for (mesh in objMeshListMazeWalls) {
-            meshListMazeWalls.add(Mesh(mesh.vertexData, mesh.indexData, vertexAttributes, mazeWallMaterial))
-        }
         for (mesh in objMeshListMazeFloor) {
             meshListMazeFloor.add(Mesh(mesh.vertexData, mesh.indexData, vertexAttributes, mazeFloorMaterial))
         }
@@ -174,32 +128,8 @@ class Scene(private val window: GameWindow) {
             meshListMazeTop.add(Mesh(mesh.vertexData, mesh.indexData, vertexAttributes, mazeTopMaterial))
         }
 
-        for (mesh in objMeshListCube) {
-            meshListCube.add(Mesh(mesh.vertexData, mesh.indexData, vertexAttributes, cubeMaterial))
-        }
-
-        bodenmatrix.scale(1f)
-        bodenmatrix.rotateX(90f)
-
-        mazeWallsMatrix.scale(1f)
-        mazeWallsMatrix.translateLocal(Vector3f(0.0f, 0.0f, 0.0f))
-
-        mazeFloorMatrix.scale(1f)
-        mazeFloorMatrix.translateLocal(Vector3f(0.0f, 0.0f, 0.0f))
-
-        cubeMatrix.scale(10f)
-        cubeMatrix.translateLocal(Vector3f(0.0f, 0.0f, 0.0f))
-
-        mazeTopMatrix.scale(1f)
-        mazeTopMatrix.translateLocal(Vector3f(0.0f, 0.0f, 0.0f))
-
-
-
          /** Labyrint Positionen und Render */
 
-        ground = Renderable(meshListGround)
-        sphere = Renderable(meshListSphere)
-        mazeWalls = Renderable(meshListMazeWalls)
         mazeFloor = Renderable(meshListMazeFloor)
         mazeTop = Renderable(meshListMazeTop)
         
@@ -218,14 +148,15 @@ class Scene(private val window: GameWindow) {
 
         moveablewall = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
 
-        wall = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
-        wall1 = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
-        wall2 = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
-        wall3 = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
-        wall4 = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
-        wall5 = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
-        wall6 = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
-        wall7 = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+
+        var x = 0
+
+        while (x < 8) {
+            walls.add(ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!"))
+            x++
+        }
+
+
 
 
         /** Camerastart Position */
@@ -272,40 +203,30 @@ class Scene(private val window: GameWindow) {
 
 
 
-        wall.scaleLocal(Vector3f(0.5f))
-        wall1.scaleLocal(Vector3f(0.5f))
-        wall2.scaleLocal(Vector3f(0.5f))
-        wall3.scaleLocal(Vector3f(0.5f))
-        wall4.scaleLocal(Vector3f(0.5f))
-        wall5.scaleLocal(Vector3f(0.5f))
-        wall6.scaleLocal(Vector3f(0.5f))
-        wall7.scaleLocal(Vector3f(0.5f))
+        var u = 0
+
+        while (u < 8) {
+            walls[u].scaleLocal(Vector3f(0.5f))
+            objList.add(walls[u])
+            u++
+        }
 
 
-        objList.add(wall1)
-        objList.add(wall2)
-        objList.add(wall3)
-        objList.add(wall4)
-        objList.add(wall5)
-        objList.add(wall6)
-        objList.add(wall7)
+        walls[0].translateLocal(Vector3f(0f, 0.0f, 0f))
+        walls[1].translateLocal(Vector3f(20f, 0.0f, 0f))
+        walls[2].translateLocal(Vector3f(40f, 0.0f, 0f))
+        walls[3].translateLocal(Vector3f(60f, 0.0f, 0f))
 
-        wall.translateLocal(Vector3f(0f, 0.0f, 0f))
-        wall1.translateLocal(Vector3f(20f, 0.0f, 0f))
-        wall2.translateLocal(Vector3f(40f, 0.0f, 0f))
-        wall3.translateLocal(Vector3f(60f, 0.0f, 0f))
+        walls[4].translateLocal(Vector3f(20f, 0.0f, -20f))
+        walls[5].translateLocal(Vector3f(40f, 0.0f, -20f))
+        walls[6].translateLocal(Vector3f(60f, 0.0f, -20f))
 
-        wall4.translateLocal(Vector3f(20f, 0.0f, -20f))
-        wall5.translateLocal(Vector3f(40f, 0.0f, -20f))
-        wall6.translateLocal(Vector3f(60f, 0.0f, -20f))
+        walls[7].translateLocal(Vector3f(70f, 0.0f, -10f))
+        walls[7].rotateLocal(0f, toRadians(90f), 0f)
 
-        wall7.translateLocal(Vector3f(70f, 0.0f, -10f))
-        /** translate weicht um 10f ab weil er sich in der mitte dreht */
-        wall7.rotateLocal(0f, toRadians(90f), 0f)
 
 
         /** Mauern Hitbox */
-
 
         wallHitbox.add(moveablewall.getPosition().x)
         wallHitbox.add(moveablewall.getPosition().z)
@@ -345,7 +266,6 @@ class Scene(private val window: GameWindow) {
 
         tronShader.setUniform("farbe", Vector3f(0f,1f,0f))
         tronShader.setUniform("farbe", Vector3f(1f,1f,1f))
-        mazeWalls.render(tronShader)
         mazeFloor.render(tronShader)
         mazeTop.render(tronShader)
         mapcameraobjekt.render(tronShader)
@@ -355,14 +275,14 @@ class Scene(private val window: GameWindow) {
 
         moveablewall.render(tronShader)
 
-        wall.render(tronShader)
-        wall1.render(tronShader)
-        wall2.render(tronShader)
-        wall3.render(tronShader)
-        wall4.render(tronShader)
-        wall5.render(tronShader)
-        wall6.render(tronShader)
-        wall7.render(tronShader)
+
+        var z = 0
+
+        while (z < 8) {
+            walls[z].render(tronShader)
+            z++
+        }
+
     }
 
 
@@ -511,19 +431,6 @@ class Scene(private val window: GameWindow) {
                 mazeTop.scaleLocal(Vector3f(0.000005f))
                 camera.parent = mapcameraobjekt
             }
-
-            window.getKeyState(GLFW_KEY_C) -> {
-
-                if (alteslabyrintcheck == true) {
-                    mazeWalls.translateLocal(Vector3f(0f, -100f, 0f))
-                    alteslabyrintcheck = false
-                }
-                else{
-                    mazeWalls.translateLocal(Vector3f(0f, 100f, 0f))
-                    alteslabyrintcheck = true
-                }
-
-                                        }
 
         }
     }
