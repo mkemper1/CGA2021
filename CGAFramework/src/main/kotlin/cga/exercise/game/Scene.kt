@@ -46,10 +46,10 @@ class Scene(private val window: GameWindow) {
 
     var moveablewall :Renderable
 
-
     val camera = TronCamera()
 
     val objList = mutableListOf<Renderable>()
+    val objHitbox = mutableListOf<Float>()
     val wallHitbox = mutableListOf<Float>()
 
     /** Var´s */
@@ -62,7 +62,6 @@ class Scene(private val window: GameWindow) {
     var cameracheck2 = false
     var cameracheck3 = false
     var cameracheck4 = false
-    var alteslabyrintcheck = true
 
     /** Scene Build */
     init {
@@ -76,7 +75,6 @@ class Scene(private val window: GameWindow) {
         glCullFace(GL_BACK); GLError.checkThrow()
         glEnable(GL_DEPTH_TEST); GLError.checkThrow()
         glDepthFunc(GL_LESS); GLError.checkThrow()
-
 
         /** Labyrint */
 
@@ -117,9 +115,6 @@ class Scene(private val window: GameWindow) {
         val mazeTopMaterial = Material(groundDiffTexture, mazeTopTexture, groundSpecTexture, groundShininess,
             groundTCMultiplier)
 
-
-
-
         /** Labyrint mesh */
         for (mesh in objMeshListMazeFloor) {
             meshListMazeFloor.add(Mesh(mesh.vertexData, mesh.indexData, vertexAttributes, mazeFloorMaterial))
@@ -138,7 +133,6 @@ class Scene(private val window: GameWindow) {
 
         mazeTop.translateLocal(Vector3f(0f,1f,0f))
 
-
         /** Modelloader */
         cycle = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
         player = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
@@ -148,16 +142,12 @@ class Scene(private val window: GameWindow) {
 
         moveablewall = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
 
-
         var x = 0
 
         while (x < 8) {
             walls.add(ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!"))
             x++
         }
-
-
-
 
         /** Camerastart Position */
         camera.parent = player
@@ -181,7 +171,6 @@ class Scene(private val window: GameWindow) {
         cycle.scaleLocal(Vector3f(1.8f))
         lantern.translateLocal(Vector3f(5f, 1f, 0f))
 
-
         /** Lichter */
         pointLight = PointLight(Vector3f(0f, 2f, 0f), Vector3f(1f, 1f, 0f), Vector3f(1f, 0.5f, 0.1f))
         spotLight = SpotLight(Vector3f(0f, 1f, -1f), Vector3f(2f,2f,0.1f), Vector3f(0.1f, 0.01f, 0.01f), Vector2f(toRadians(150f), toRadians(30f)))
@@ -189,19 +178,10 @@ class Scene(private val window: GameWindow) {
         pointLight.parent = mapcameraobjekt
         spotLight.parent = mapcameraobjekt
 
-
-
-
-
-
-
-
         /** Mauern */
 
         moveablewall.scaleLocal(Vector3f(0.5f))
         moveablewall.translateLocal(Vector3f(-35f, 0.0f, 0f))
-
-
 
         var u = 0
 
@@ -210,7 +190,6 @@ class Scene(private val window: GameWindow) {
             objList.add(walls[u])
             u++
         }
-
 
         walls[0].translateLocal(Vector3f(0f, 0.0f, 0f))
         walls[1].translateLocal(Vector3f(20f, 0.0f, 0f))
@@ -223,8 +202,6 @@ class Scene(private val window: GameWindow) {
 
         walls[7].translateLocal(Vector3f(70f, 0.0f, -10f))
         walls[7].rotateLocal(0f, toRadians(90f), 0f)
-
-
 
         /** Mauern Hitbox */
 
@@ -243,14 +220,8 @@ class Scene(private val window: GameWindow) {
         println("B für Bewegende Wand Kamera")                                                      
         println("N für die kleine Laterne auf dem Boden")                                           
         println("M für die Orbitalekamera")                                                         
-                                                                                                    
-
 
     }
-
-
-
-
 
     fun render(dt: Float, t: Float) {
 
@@ -275,41 +246,19 @@ class Scene(private val window: GameWindow) {
 
         moveablewall.render(tronShader)
 
-
         var z = 0
 
-        while (z < 8) {
+        while (z < 1) {
             walls[z].render(tronShader)
             z++
         }
 
     }
 
-
-
-
-
-
-
     fun update(dt: Float, t: Float) {
 
         pointLight.lightColor = Vector3f(abs(sin(t/3f)), abs(sin(t/4f)), abs(sin(t/2)))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
         when {
             /** Movement */
             window.getKeyState(GLFW_KEY_W) -> {
@@ -343,59 +292,40 @@ class Scene(private val window: GameWindow) {
             /** wall Bewegung */
 
             window.getKeyState(GLFW_KEY_T) -> {
-                for (obj in objList) {
-                    if (collisionTest(moveablewall, obj, 'T')) moveablewall.translateLocal(
-                        Vector3f(
-                            0.05f,
-                            0.0f,
-                            0.0f
-                        )
-                    ) else moveablewall.translateLocal(Vector3f(-0.05f, 0.0f, 0.0f))
-                }
+                // for (obj in objList) {
+                //     if (collisionTest(moveablewall, obj, 'T')) moveablewall.translateLocal(Vector3f(0.05f, 0.0f, 0.0f)) else moveablewall.translateLocal(Vector3f(-0.05f, 0.0f, 0.0f))
+                // }
+
+                if (collisionTest(moveablewall, walls[0], 'T')) moveablewall.translateLocal(Vector3f(0.05f, 0.0f, 0.0f)) else moveablewall.translateLocal(Vector3f(0.0f, 0.0f, 0.0f))
+
             }
 
             window.getKeyState(GLFW_KEY_H) -> {
-                for (obj in objList) {
-                    if (collisionTest(moveablewall, obj, 'H')) moveablewall.translateLocal(
-                        Vector3f(
-                            0.0f,
-                            0.0f,
-                            0.05f
-                        )
-                    ) else moveablewall.translateLocal(Vector3f(0.0f, 0.0f, -0.05f))
-                }
+                // for (obj in objList) {
+                //     if (collisionTest(moveablewall, obj, 'H')) moveablewall.translateLocal(Vector3f(0.0f, 0.0f, 0.05f)) else moveablewall.translateLocal(Vector3f(0.0f, 0.0f, -0.05f))
+                // }
+
+                if (collisionTest(moveablewall, walls[0], 'H')) moveablewall.translateLocal(Vector3f(0.0f, 0.0f, 0.05f)) else moveablewall.translateLocal(Vector3f(0.0f, 0.0f, 0.0f))
+
             }
 
             window.getKeyState(GLFW_KEY_F) -> {
-                for (obj in objList) {
-                    if (collisionTest(moveablewall, obj, 'F')) moveablewall.translateLocal(
-                        Vector3f(
-                            0.0f,
-                            0.0f,
-                            -0.05f
-                        )
-                    ) else moveablewall.translateLocal(Vector3f(0.0f, 0.0f, 0.05f))
-                }
+                // for (obj in objList) {
+                //     if (collisionTest(moveablewall, obj, 'F')) moveablewall.translateLocal(Vector3f(0.0f, 0.0f, -0.05f)) else moveablewall.translateLocal(Vector3f(0.0f, 0.0f, 0.05f))
+                // }
+
+                if (collisionTest(moveablewall, walls[0], 'F')) moveablewall.translateLocal(Vector3f(0.0f, 0.0f, -0.05f)) else moveablewall.translateLocal(Vector3f(0.0f, 0.0f, 0.0f))
 
             }
 
             window.getKeyState(GLFW_KEY_G) -> {
-                for (obj in objList) {
-                    if (collisionTest(moveablewall, obj, 'G')) moveablewall.translateLocal(
-                        Vector3f(
-                            -0.05f,
-                            0.0f,
-                            0.0f
-                        )
-                    ) else moveablewall.translateLocal(Vector3f(0.05f, 0.0f, 0.0f))
-                }
+                // for (obj in objList) {
+                //     if (collisionTest(moveablewall, obj, 'G')) moveablewall.translateLocal(Vector3f(-0.05f, 0.0f, 0.0f)) else moveablewall.translateLocal(Vector3f(0.05f, 0.0f, 0.0f))
+                // }
+
+                if (collisionTest(moveablewall, walls[0], 'G')) moveablewall.translateLocal(Vector3f(-0.05f, 0.0f, 0.0f)) else moveablewall.translateLocal(Vector3f(0.0f, 0.0f, 0.0f))
+
             }
-
-
-
-
-
-
 
             /** Cameraview */
             /** 1st Person */
@@ -442,30 +372,30 @@ class Scene(private val window: GameWindow) {
         when {
 
             key == 'T' -> {
-                if (firstMesh.getPosition().x + 1 > secoundMesh.getPosition().x - 1 && firstMesh.getPosition().x - 1 < secoundMesh.getPosition().x - 1) {
-                    if (firstMesh.getPosition().z - 1 > secoundMesh.getPosition().z + 0.9) move = true
-                    if (firstMesh.getPosition().z + 1 < secoundMesh.getPosition().z - 0.9) move = true
+                if (firstMesh.getPosition().x + 5.01 > secoundMesh.getPosition().x - 5.01 && firstMesh.getPosition().x - 5.01 < secoundMesh.getPosition().x - 5.01) {
+                    if (firstMesh.getPosition().z - 0.5 > secoundMesh.getPosition().z + 0.4) move = true
+                    if (firstMesh.getPosition().z + 0.5 < secoundMesh.getPosition().z - 0.4) move = true
                 } else move = true
             }
 
             key == 'H' -> {
-                if(firstMesh.getWorldPosition().z + 1 > secoundMesh.getPosition().z - 1 && firstMesh.getWorldPosition().z - 1 < secoundMesh.getWorldPosition().z - 1) {
-                    if (firstMesh.getWorldPosition().x - 1 > secoundMesh.getPosition().x + 0.9) move = true
-                    if (firstMesh.getWorldPosition().x + 1 < secoundMesh.getPosition().x - 0.9) move = true
+                if(firstMesh.getWorldPosition().z + 0.5 > secoundMesh.getPosition().z - 0.5 && firstMesh.getWorldPosition().z - 0.5 < secoundMesh.getWorldPosition().z - 0.5) {
+                    if (firstMesh.getWorldPosition().x - 5.01 > secoundMesh.getPosition().x + 5.0) move = true
+                    if (firstMesh.getWorldPosition().x + 5.01 < secoundMesh.getPosition().x - 5.0) move = true
                 } else move = true
             }
 
             key == 'F' -> {
-                if(firstMesh.getPosition().z - 1 < secoundMesh.getPosition().z + 1 && firstMesh.getPosition().z + 1 > secoundMesh.getPosition().z + 1) {
-                    if (firstMesh.getPosition().x - 1 > secoundMesh.getPosition().x + 0.9) move = true
-                    if (firstMesh.getPosition().x + 1 < secoundMesh.getPosition().x - 0.9) move = true
+                if(firstMesh.getPosition().z - 0.5 < secoundMesh.getPosition().z + 0.5 && firstMesh.getPosition().z + 0.5 > secoundMesh.getPosition().z + 0.5) {
+                    if (firstMesh.getPosition().x - 5.01 > secoundMesh.getPosition().x + 5.0) move = true
+                    if (firstMesh.getPosition().x + 5.01 < secoundMesh.getPosition().x - 5.0) move = true
                 } else move = true
             }
 
             key == 'G' -> {
-                if (firstMesh.getPosition().x - 1 < secoundMesh.getPosition().x + 1 && firstMesh.getPosition().x + 1 > secoundMesh.getPosition().x + 1) {
-                    if (firstMesh.getPosition().z - 1 > secoundMesh.getPosition().z + 0.9) move = true
-                    if (firstMesh.getPosition().z + 1 < secoundMesh.getPosition().z - 0.9) move = true
+                if (firstMesh.getPosition().x - 5.01 < secoundMesh.getPosition().x + 5.01 && firstMesh.getPosition().x + 5.01 > secoundMesh.getPosition().x + 5.01) {
+                    if (firstMesh.getPosition().z - 0.5 > secoundMesh.getPosition().z + 0.4) move = true
+                    if (firstMesh.getPosition().z + 0.5 < secoundMesh.getPosition().z - 0.4) move = true
                 } else move = true
             }
         }
@@ -482,7 +412,6 @@ class Scene(private val window: GameWindow) {
         var deltaY = ypos - oldMousePosY
         oldMousePosX = xpos
         oldMousePosY = ypos
-
 
         /** Camera 1 */
         if(notFirstFrame && cameracheck1 == true) {
@@ -509,9 +438,6 @@ class Scene(private val window: GameWindow) {
         }
         notFirstFrame = true
     }
-
-
-
 
     fun cleanup() {}
 }
