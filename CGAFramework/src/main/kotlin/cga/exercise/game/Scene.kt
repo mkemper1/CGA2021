@@ -26,12 +26,13 @@ class Scene(private val window: GameWindow) {
     private val staticShader: ShaderProgram
     private val tronShader: ShaderProgram
     private val walls = mutableListOf<Renderable>()
+    private val checkList = mutableListOf<Boolean>()
 
     /** Renderables */
     var mapcameraobjekt: Renderable
     var player: Renderable
     var lantern : Renderable
-    var cycle : Renderable
+    // var cycle : Renderable
     var mac : Renderable
 
     /** Labyrint */
@@ -132,7 +133,7 @@ class Scene(private val window: GameWindow) {
         mazeTop.translateLocal(Vector3f(0f,1f,0f))
 
         /** Modelloader */
-        cycle = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
+        // cycle = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
         player = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
         mapcameraobjekt = ModelLoader.loadModel("assets/among_us_obj/among us.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
         lantern = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(-0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
@@ -147,13 +148,14 @@ class Scene(private val window: GameWindow) {
         }
 
         /** Camerastart Position */
-        camera.parent = player
-        camera.translateLocal(Vector3f(0f, 1.4f, 0f))
+        // camera.parent = player
+        camera.translateLocal(Vector3f(0f, 10f, .0f))
         
 
-        /** Playerstart Position */ 0 
-        player.translateLocal(Vector3f(0f, 0f, -25f))
+        /** Playerstart Position */
+        player.translateLocal(Vector3f(-35f, 2f, -5f))
         player.rotateLocal(0f, toRadians(180f), 0f)
+
 
         /** Orbitalecamera Position */
         mapcameraobjekt.scaleLocal(Vector3f(0.008f))
@@ -162,10 +164,10 @@ class Scene(private val window: GameWindow) {
         /** Pistole */
         mac.scaleLocal(Vector3f(0.008f))
         mac.translateLocal(Vector3f(20f, 150f, -35f))
-        mac.parent = player
+        //mac.parent = player
 
         /** Objektplatzierung */
-        cycle.scaleLocal(Vector3f(1.8f))
+        // cycle.scaleLocal(Vector3f(0.0f))
         lantern.translateLocal(Vector3f(5f, 1f, 0f))
 
         /** Lichter */
@@ -178,9 +180,10 @@ class Scene(private val window: GameWindow) {
 
 
         /** Mauern */
-
+        camera.parent = moveablewall
         moveablewall.scaleLocal(Vector3f(0.3f))
-        moveablewall.translateLocal(Vector3f(-35f, 0.0f, -5.0f))
+        moveablewall.translateLocal(Vector3f(-30f, 0.0f, -9.0f))
+        // moveablewall.rotateLocal(0f, toRadians(180f), 0f)
 
         var f = 0
         while (f < 80) {
@@ -353,18 +356,18 @@ class Scene(private val window: GameWindow) {
         pointLight.bind(tronShader, "point")
 
         tronShader.setUniform("farbe", Vector3f(abs(sin(t)), abs(sin(t/2f)), abs(sin(t/3f))))
-        cycle.render(tronShader)
+        //cycle.render(tronShader)
 
         tronShader.setUniform("farbe", Vector3f(0f,1f,0f))
         tronShader.setUniform("farbe", Vector3f(1f,1f,1f))
         mazeFloor.render(tronShader)
-        mazeTop.render(tronShader)
+        // mazeTop.render(tronShader)
         mapcameraobjekt.render(tronShader)
         lantern.render(tronShader)
         mac.render(tronShader)
-        player.render(tronShader)
+        // player.render(tronShader)
 
-        moveablewall.render(tronShader)
+        // moveablewall.render(tronShader)
 
         var z = 0
         while (z < 80) {
@@ -379,79 +382,97 @@ class Scene(private val window: GameWindow) {
         pointLight.lightColor = Vector3f(abs(sin(t/3f)), abs(sin(t/4f)), abs(sin(t/2)))
 
         var x = 0
-        var move = true
+
+        checkList.add(true)
+        checkList.add(true)
+        checkList.add(true)
+        checkList.add(true)
 
         when {
-            /** Movement */
-            window.getKeyState(GLFW_KEY_W) -> {
-                if (window.getKeyState(GLFW_KEY_A)) {
-                    player.translateLocal(Vector3f(2f * -dt, 0f, 0f))
-                }
-                if (window.getKeyState(GLFW_KEY_D)) {
-                    player.translateLocal(Vector3f(2f * dt, 0f, 0f))
-                }
-                if (window.getKeyState(GLFW_KEY_LEFT_SHIFT)) {
-                    player.translateLocal(Vector3f(0f, 0f, 4 * -dt))
-                }
-                player.translateLocal(Vector3f(0f, 0f, 2 * -dt))
-            }
-            window.getKeyState(GLFW_KEY_S) -> {
-                if (window.getKeyState(GLFW_KEY_A)) {
-                    player.rotateLocal(0f, 2f * dt, 0f)
-                }
-                if (window.getKeyState(GLFW_KEY_D)) {
-                    player.rotateLocal(0f, 2 * -dt, 0f)
-                }
-                player.translateLocal(Vector3f(0f, 0f, 2f * dt))
-            }
-            window.getKeyState(GLFW_KEY_A) -> {
-                player.translateLocal(Vector3f(2f * -dt, 0f, 0f))
-            }
-            window.getKeyState(GLFW_KEY_D) -> {
-                player.translateLocal(Vector3f(2f * dt, 0f, 0f))
-            }
-
             /** wall Bewegung */
 
-            window.getKeyState(GLFW_KEY_T) -> {
+            window.getKeyState(GLFW_KEY_D) -> {
 
-                while (x < 80) {
-                    if (!collisionTest(moveablewall, objList[x], 'T')) move = false
-                    x++
+                if(window.getKeyState(GLFW_KEY_S)) {
+                    while (x < 80) {
+                        collisionTest2(moveablewall, objList[x], 'D')
+                        collisionTest2(moveablewall, objList[x], 'S')
+                        x++
+                    }
+                    moveablewall.translateLocal(Vector3f(0.2f, 0.0f, 0.2f))
+
                 }
-                if (move) moveablewall.translateLocal(Vector3f(0.2f, 0.0f, 0.0f))
+                else if(window.getKeyState(GLFW_KEY_W)) {
+                    while (x < 80) {
+                        collisionTest2(moveablewall, objList[x], 'D')
+                        collisionTest2(moveablewall, objList[x], 'W')
+                        x++
+                    }
+                    moveablewall.translateLocal(Vector3f(0.2f, 0.0f, -0.2f))
+
+                }
+                else {
+                    while (x < 80) {
+                        collisionTest2(moveablewall, objList[x], 'D')
+                        x++
+                    }
+                    moveablewall.translateLocal(Vector3f(0.2f, 0.0f, 0.0f))
+                }
 
             }
 
-            window.getKeyState(GLFW_KEY_H) -> {
+            window.getKeyState(GLFW_KEY_S) && !window.getKeyState(GLFW_KEY_D) && !window.getKeyState(GLFW_KEY_A) -> {
 
                 while (x < 80) {
-                    if (!collisionTest(moveablewall, objList[x], 'H')) move = false
+                    collisionTest2(moveablewall, objList[x], 'S')
                     x++
                 }
-                if (move) moveablewall.translateLocal(Vector3f(0.0f, 0.0f, 0.2f))
+                moveablewall.translateLocal(Vector3f(0.0f, 0.0f, 0.2f))
 
             }
 
-            window.getKeyState(GLFW_KEY_F) -> {
+            window.getKeyState(GLFW_KEY_W) && !window.getKeyState(GLFW_KEY_D) && !window.getKeyState(GLFW_KEY_A) -> {
 
                 while (x < 80) {
-                    if (!collisionTest(moveablewall, objList[x], 'F')) move = false
+                    collisionTest2(moveablewall, objList[x], 'W')
                     x++
                 }
-                if (move) moveablewall.translateLocal(Vector3f(0.0f, 0.0f, -0.2f))
+                moveablewall.translateLocal(Vector3f(0.0f, 0.0f, -0.2f))
 
             }
 
-            window.getKeyState(GLFW_KEY_G) -> {
+            window.getKeyState(GLFW_KEY_A) -> {
 
-                while (x < 80) {
-                    if (!collisionTest(moveablewall, objList[x], 'G')) move = false
-                    x++
+                if(window.getKeyState(GLFW_KEY_S)) {
+                    while (x < 80) {
+                        collisionTest2(moveablewall, objList[x], 'A')
+                        collisionTest2(moveablewall, objList[x], 'S')
+                        x++
+                    }
+                    moveablewall.translateLocal(Vector3f(-0.2f, 0.0f, 0.2f))
+
                 }
-                if (move) moveablewall.translateLocal(Vector3f(-0.2f, 0.0f, 0.0f))
+                else if (window.getKeyState(GLFW_KEY_W)) {
+                    while (x < 80) {
+                        collisionTest2(moveablewall, objList[x], 'A')
+                        collisionTest2(moveablewall, objList[x], 'W')
+                        x++
+                    }
+                    moveablewall.translateLocal(Vector3f(-0.2f, 0.0f, -0.2f))
+                }
+                else {
+                    while (x < 80) {
+                        collisionTest2(moveablewall, objList[x], 'A')
+                        x++
+                    }
+                    moveablewall.translateLocal(Vector3f(-0.2f, 0.0f, 0.0f))
+                }
+
+
 
             }
+
+
 
             /** Cameraview */
             /** 1st Person */
@@ -489,12 +510,17 @@ class Scene(private val window: GameWindow) {
             }
 
         }
+
     }
 
-    fun collisionTest(firstMesh: Renderable, secoundMesh: Renderable, key: Char): Boolean {
+    fun collisionTest2(firstMesh: Renderable, secoundMesh: Renderable, key: Char) {
 
-        var move = false
         var vert = false
+
+        val t: Boolean
+        val g: Boolean
+        val h: Boolean
+        val f: Boolean
 
         if (secoundMesh == objList[8] ||
             secoundMesh == objList[9] ||
@@ -532,103 +558,121 @@ class Scene(private val window: GameWindow) {
             secoundMesh == objList[65] ||
             secoundMesh == objList[66] ||
             secoundMesh == objList[71] ||
-            secoundMesh == objList[72]) vert = true
+            secoundMesh == objList[72]
+        ) vert = true
 
-        when (key) {
-            'T' -> {
-                if(!vert) {
-                    if (firstMesh.getPosition().x + 3.01 > secoundMesh.getPosition().x - 5.01 && firstMesh.getPosition().x - 3.01 < secoundMesh.getPosition().x - 5.01) {
-                        if (firstMesh.getPosition().z - 0.3 > secoundMesh.getPosition().z + 0.4) move = true
-                        if (firstMesh.getPosition().z + 0.3 < secoundMesh.getPosition().z - 0.4) move = true
-                    } else move = true
-                } else {
-                    if (firstMesh.getPosition().x + 3.01 > secoundMesh.getPosition().x - 0.5 && firstMesh.getPosition().x - 3.01 < secoundMesh.getPosition().x - 0.5) {
-                        if (firstMesh.getPosition().z - 0.3 > secoundMesh.getPosition().z + 4.9) move = true
-                        if (firstMesh.getPosition().z + 0.3 < secoundMesh.getPosition().z - 4.9) move = true
-                    } else move = true
-                }
-            }
-            'H' -> {
-                if(!vert){
-                    if(firstMesh.getPosition().z + 0.3 > secoundMesh.getPosition().z - 0.5 && firstMesh.getPosition().z - 0.3 < secoundMesh.getPosition().z - 0.5) {
-                        if (firstMesh.getPosition().x - 3.0 > secoundMesh.getPosition().x + 4.9) move = true
-                        if (firstMesh.getPosition().x + 3.0 < secoundMesh.getPosition().x - 4.9) move = true
-                    } else move = true
-                } else {
-                    if(firstMesh.getPosition().z + 0.3 > secoundMesh.getPosition().z - 5.0 && firstMesh.getPosition().z - 0.3 < secoundMesh.getPosition().z - 5.0) {
-                        if (firstMesh.getPosition().x - 3.0 > secoundMesh.getPosition().x + 0.4) move = true
-                        if (firstMesh.getPosition().x + 3.0 < secoundMesh.getPosition().x - 0.4) move = true
-                    } else move = true
-                }
+        when (vert) {
+            false -> {
 
-            }
-            'F' -> {
-                if(!vert) {
-                    if(firstMesh.getPosition().z - 0.3 < secoundMesh.getPosition().z + 0.5 && firstMesh.getPosition().z + 0.3 > secoundMesh.getPosition().z + 0.5) {
-                        if (firstMesh.getPosition().x - 3.0 > secoundMesh.getPosition().x + 4.9) move = true
-                        if (firstMesh.getPosition().x + 3.0 < secoundMesh.getPosition().x - 4.9) move = true
-                    } else move = true
-                } else {
-                    if(firstMesh.getPosition().z - 0.3 < secoundMesh.getPosition().z + 5.0 && firstMesh.getPosition().z + 0.3 > secoundMesh.getPosition().z + 5.0) {
-                        if (firstMesh.getPosition().x - 3.0 > secoundMesh.getPosition().x + 0.4) move = true
-                        if (firstMesh.getPosition().x + 3.0 < secoundMesh.getPosition().x - 0.4) move = true
-                    } else move = true
+                t = !(firstMesh.getWorldPosition().x + 1 > secoundMesh.getWorldPosition().x - 5.0 && firstMesh.getWorldPosition().x - 1 < secoundMesh.getWorldPosition().x - 5.0)
+                        || firstMesh.getWorldPosition().z - 0.8 > secoundMesh.getWorldPosition().z + 0.5
+                        || firstMesh.getWorldPosition().z + 0.8 < secoundMesh.getWorldPosition().z - 0.5
+
+
+                g = !(firstMesh.getWorldPosition().x - 1 < secoundMesh.getWorldPosition().x + 5.0 && firstMesh.getWorldPosition().x + 1 > secoundMesh.getWorldPosition().x + 5.0)
+                        || firstMesh.getWorldPosition().z - 0.8 > secoundMesh.getWorldPosition().z + 0.5
+                        || firstMesh.getWorldPosition().z + 0.8 < secoundMesh.getWorldPosition().z - 0.5
+
+
+                h = !(firstMesh.getWorldPosition().z + 1 > secoundMesh.getWorldPosition().z - 0.5 && firstMesh.getWorldPosition().z - 1 < secoundMesh.getWorldPosition().z - 0.5)
+                        || firstMesh.getWorldPosition().x - 0.8 > secoundMesh.getWorldPosition().x + 5
+                        || firstMesh.getWorldPosition().x + 0.8 < secoundMesh.getWorldPosition().x - 5
+
+
+                f = !(firstMesh.getWorldPosition().z - 1 < secoundMesh.getWorldPosition().z + 0.5 && firstMesh.getWorldPosition().z + 1 > secoundMesh.getWorldPosition().z + 0.5)
+                        || firstMesh.getWorldPosition().x - 0.8 > secoundMesh.getWorldPosition().x + 5
+                        || firstMesh.getWorldPosition().x + 0.8 < secoundMesh.getWorldPosition().x - 5
+
+                if (!t) {
+                    moveablewall.translateGlobal(Vector3f(-0.06f, 0.0f, 0.0f))
+                }
+                if (!g) {
+                    moveablewall.translateGlobal(Vector3f(0.06f, 0.0f, 0.0f))
+                }
+                if (!h) {
+                    moveablewall.translateGlobal(Vector3f(0.0f, 0.0f, -0.06f))
+                }
+                if (!f) {
+                    moveablewall.translateGlobal(Vector3f(0.0f, 0.0f, 0.06f))
                 }
 
+
+
             }
-            'G' -> {
-                if(!vert) {
-                    if (firstMesh.getWorldPosition().x - 3.01 < secoundMesh.getWorldPosition().x + 5.01 && firstMesh.getWorldPosition().x + 3.01 > secoundMesh.getWorldPosition().x + 5.01) {
-                        if (firstMesh.getWorldPosition().z - 0.3 > secoundMesh.getWorldPosition().z + 0.4) move = true
-                        if (firstMesh.getWorldPosition().z + 0.3 < secoundMesh.getWorldPosition().z - 0.4) move = true
-                    } else move = true
-                } else {
-                    if (firstMesh.getWorldPosition().x - 3.01 < secoundMesh.getWorldPosition().x + 0.5 && firstMesh.getWorldPosition().x + 3.01 > secoundMesh.getWorldPosition().x + 0.5) {
-                        if (firstMesh.getWorldPosition().z - 0.3 > secoundMesh.getWorldPosition().z + 4.9) move = true
-                        if (firstMesh.getWorldPosition().z + 0.3 < secoundMesh.getWorldPosition().z - 4.9) move = true
-                    } else move = true
+
+            true -> {
+
+                t = !(firstMesh.getWorldPosition().x + 1 > secoundMesh.getWorldPosition().x - 0.5 && firstMesh.getWorldPosition().x - 1 < secoundMesh.getWorldPosition().x - 0.5)
+                            || firstMesh.getWorldPosition().z - 0.8 > secoundMesh.getWorldPosition().z + 5
+                            || firstMesh.getWorldPosition().z + 0.8 < secoundMesh.getWorldPosition().z - 5
+
+                g = !(firstMesh.getWorldPosition().x - 1 < secoundMesh.getWorldPosition().x + 0.5 && firstMesh.getWorldPosition().x + 1 > secoundMesh.getWorldPosition().x + 0.5)
+                            || firstMesh.getWorldPosition().z - 0.8 > secoundMesh.getWorldPosition().z + 5
+                            || firstMesh.getWorldPosition().z + 0.8 < secoundMesh.getWorldPosition().z - 5
+
+                h = !(firstMesh.getWorldPosition().z + 1 > secoundMesh.getWorldPosition().z - 5.0 && firstMesh.getWorldPosition().z - 1 < secoundMesh.getWorldPosition().z - 5.0)
+                            || firstMesh.getWorldPosition().x - 0.8 > secoundMesh.getWorldPosition().x + 0.5
+                            || firstMesh.getWorldPosition().x + 0.8 < secoundMesh.getWorldPosition().x - 0.5
+
+                f = !(firstMesh.getWorldPosition().z - 1 < secoundMesh.getWorldPosition().z + 5.0 && firstMesh.getWorldPosition().z + 1 > secoundMesh.getWorldPosition().z + 5.0)
+                            || firstMesh.getWorldPosition().x - 0.8 > secoundMesh.getWorldPosition().x + 0.5
+                            || firstMesh.getWorldPosition().x + 0.8 < secoundMesh.getWorldPosition().x - 0.5
+
+                if (!t) {
+                    moveablewall.translateGlobal(Vector3f(-0.06f, 0.0f, 0.0f))
+                }
+                if (!g) {
+                    moveablewall.translateGlobal(Vector3f(0.06f, 0.0f, 0.0f))
+                }
+                if (!h) {
+                    moveablewall.translateGlobal(Vector3f(0.0f, 0.0f, -0.06f))
+                }
+                if (!f) {
+                    moveablewall.translateGlobal(Vector3f(0.0f, 0.0f, 0.06f))
                 }
 
             }
         }
-
-        return move
 
     }
 
     fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {
+
     }
 
     fun onMouseMove(xpos: Double, ypos: Double) {
         val deltaX = xpos - oldMousePosX
-        var deltaY = ypos - oldMousePosY
+        val deltaY = ypos - oldMousePosY
         oldMousePosX = xpos
         oldMousePosY = ypos
 
         /** Camera 1 */
-        if(notFirstFrame && cameracheck1 == true) {
+        if(notFirstFrame && cameracheck1) {
             /** links-rechts */
-            player.rotateLocal(0f, toRadians(deltaX.toFloat() * -0.06f), 0f)
+            player.rotateLocal(0f, toRadians(deltaX.toFloat() * -0.05f), 0f)
             /** hoch-runter */
             camera.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.05f), 0f, 0f)
+            moveablewall.rotateLocal(0f, toRadians(deltaX.toFloat() * -0.05f), 0f)
             /** Fliegen mit Taste F */
-            when {
-                window.getKeyState(GLFW_KEY_F) -> {
-                player.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.1f), 0f, 0f)
-                    player.rotateLocal(0f, toRadians(deltaX.toFloat() * -0.06f), 0f)
-                }
-            }
+            // when {
+            //     window.getKeyState(GLFW_KEY_F) -> {
+            //     player.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.1f), 0f, 0f)
+            //         player.rotateLocal(0f, toRadians(deltaX.toFloat() * -0.06f), 0f)
+            //     }
+            // }
         }
         notFirstFrame = true
 
         /** Camera 4 */
-        if(notFirstFrame && cameracheck4 == true) {
+        if(notFirstFrame && cameracheck4) {
             /** links-rechts */
             camera.rotateAroundPoint(0f, toRadians(deltaX.toFloat() * -0.03f), 0f, Vector3f(0f))
+            // moveablewall.rotateLocal(0f, toRadians(deltaX.toFloat() * -0.05f), 0f)
             /** hoch-runter */
             camera.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.05f), 0f, 0f)
         }
         notFirstFrame = true
+
     }
 
     fun cleanup() {}
