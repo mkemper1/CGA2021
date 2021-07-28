@@ -48,6 +48,9 @@ class Scene(private val window: GameWindow) {
     val camera = TronCamera()
 
     val objList = mutableListOf<Renderable>()
+    val wallVerticalHitbox = mutableListOf( 0.5f, 5.0f)
+    val wallHorizontalHitbox = mutableListOf( 5.0f, 0.5f)
+    val buttonHitbox = mutableListOf( 2f, 2f )
 
     /** Var´s */
     val pointLight : PointLight
@@ -177,9 +180,9 @@ class Scene(private val window: GameWindow) {
         pointLight.parent = lantern
         spotLight.parent = mapcameraobjekt
 
+        /** Button */
         buttonBase.translateGlobal(Vector3f(0.0f, -2f, -1.0f))
         buttonBase.rotateLocal(0.0f, toRadians(90f), 0f)
-
 
         /** Mauern */
         camera.parent = moveablewall
@@ -193,6 +196,8 @@ class Scene(private val window: GameWindow) {
             objList.add(walls[f])
             f++
         }
+
+        objList.add(buttonBase)
 
         walls[0].translateLocal(Vector3f(0f, 0.0f, 0f))
         walls[1].translateLocal(Vector3f(-20f, 0.0f, 0f))
@@ -516,6 +521,11 @@ class Scene(private val window: GameWindow) {
         val h: Boolean
         val f: Boolean
 
+        var minusX: Float
+        var plusX: Float
+        var minusZ: Float
+        var plusZ: Float
+
         if (secoundMesh == objList[8] ||
             secoundMesh == objList[9] ||
             secoundMesh == objList[10] ||
@@ -553,77 +563,54 @@ class Scene(private val window: GameWindow) {
             secoundMesh == objList[66] ||
             secoundMesh == objList[71] ||
             secoundMesh == objList[72]
-        ) vert = true
+        ) {
+            minusX = secoundMesh.getWorldPosition().x - wallVerticalHitbox[0]
+            plusX = secoundMesh.getWorldPosition().x + wallVerticalHitbox[0]
+            minusZ = secoundMesh.getWorldPosition().z - wallVerticalHitbox[1]
+            plusZ = secoundMesh.getWorldPosition().z + wallVerticalHitbox[1]
+        } else {
+            minusX = secoundMesh.getWorldPosition().x - wallHorizontalHitbox[0]
+            plusX = secoundMesh.getWorldPosition().x + wallHorizontalHitbox[0]
+            minusZ = secoundMesh.getWorldPosition().z - wallHorizontalHitbox[1]
+            plusZ = secoundMesh.getWorldPosition().z + wallHorizontalHitbox[1]
+        }
+        if (secoundMesh == objList[80]) {
+            minusX = secoundMesh.getWorldPosition().x - buttonHitbox[0]
+            plusX = secoundMesh.getWorldPosition().x + buttonHitbox[0]
+            minusZ = secoundMesh.getWorldPosition().z - buttonHitbox[1]
+            plusZ = secoundMesh.getWorldPosition().z + buttonHitbox[1]
+        }
 
-        when (vert) {
-            false -> {
-
-                t = !(firstMesh.getWorldPosition().x + 1 > secoundMesh.getWorldPosition().x - 5.0 && firstMesh.getWorldPosition().x - 1 < secoundMesh.getWorldPosition().x - 5.0)
-                        || firstMesh.getWorldPosition().z - 0.8 > secoundMesh.getWorldPosition().z + 0.5
-                        || firstMesh.getWorldPosition().z + 0.8 < secoundMesh.getWorldPosition().z - 0.5
+        t = !(firstMesh.getWorldPosition().x + 1 > minusX && firstMesh.getWorldPosition().x - 1 < minusX)
+                || firstMesh.getWorldPosition().z - 0.8 > plusZ
+                || firstMesh.getWorldPosition().z + 0.8 < minusZ
 
 
-                g = !(firstMesh.getWorldPosition().x - 1 < secoundMesh.getWorldPosition().x + 5.0 && firstMesh.getWorldPosition().x + 1 > secoundMesh.getWorldPosition().x + 5.0)
-                        || firstMesh.getWorldPosition().z - 0.8 > secoundMesh.getWorldPosition().z + 0.5
-                        || firstMesh.getWorldPosition().z + 0.8 < secoundMesh.getWorldPosition().z - 0.5
+        g = !(firstMesh.getWorldPosition().x - 1 < plusX && firstMesh.getWorldPosition().x + 1 > plusX)
+                || firstMesh.getWorldPosition().z - 0.8 > plusZ
+                || firstMesh.getWorldPosition().z + 0.8 < minusZ
 
 
-                h = !(firstMesh.getWorldPosition().z + 1 > secoundMesh.getWorldPosition().z - 0.5 && firstMesh.getWorldPosition().z - 1 < secoundMesh.getWorldPosition().z - 0.5)
-                        || firstMesh.getWorldPosition().x - 0.8 > secoundMesh.getWorldPosition().x + 5
-                        || firstMesh.getWorldPosition().x + 0.8 < secoundMesh.getWorldPosition().x - 5
+        h = !(firstMesh.getWorldPosition().z + 1 > minusZ && firstMesh.getWorldPosition().z - 1 < minusZ)
+                || firstMesh.getWorldPosition().x - 0.8 > plusX
+                || firstMesh.getWorldPosition().x + 0.8 < minusX
 
 
-                f = !(firstMesh.getWorldPosition().z - 1 < secoundMesh.getWorldPosition().z + 0.5 && firstMesh.getWorldPosition().z + 1 > secoundMesh.getWorldPosition().z + 0.5)
-                        || firstMesh.getWorldPosition().x - 0.8 > secoundMesh.getWorldPosition().x + 5
-                        || firstMesh.getWorldPosition().x + 0.8 < secoundMesh.getWorldPosition().x - 5
+        f = !(firstMesh.getWorldPosition().z - 1 < plusZ && firstMesh.getWorldPosition().z + 1 > plusZ)
+                || firstMesh.getWorldPosition().x - 0.8 > plusX
+                || firstMesh.getWorldPosition().x + 0.8 < minusX
 
-                if (!t) {
-                    moveablewall.translateGlobal(Vector3f(-0.06f, 0.0f, 0.0f))
-                }
-                if (!g) {
-                    moveablewall.translateGlobal(Vector3f(0.06f, 0.0f, 0.0f))
-                }
-                if (!h) {
-                    moveablewall.translateGlobal(Vector3f(0.0f, 0.0f, -0.06f))
-                }
-                if (!f) {
-                    moveablewall.translateGlobal(Vector3f(0.0f, 0.0f, 0.06f))
-                }
-
-            }
-
-            true -> {
-
-                t = !(firstMesh.getWorldPosition().x + 1 > secoundMesh.getWorldPosition().x - 0.5 && firstMesh.getWorldPosition().x - 1 < secoundMesh.getWorldPosition().x - 0.5)
-                            || firstMesh.getWorldPosition().z - 0.8 > secoundMesh.getWorldPosition().z + 5
-                            || firstMesh.getWorldPosition().z + 0.8 < secoundMesh.getWorldPosition().z - 5
-
-                g = !(firstMesh.getWorldPosition().x - 1 < secoundMesh.getWorldPosition().x + 0.5 && firstMesh.getWorldPosition().x + 1 > secoundMesh.getWorldPosition().x + 0.5)
-                            || firstMesh.getWorldPosition().z - 0.8 > secoundMesh.getWorldPosition().z + 5
-                            || firstMesh.getWorldPosition().z + 0.8 < secoundMesh.getWorldPosition().z - 5
-
-                h = !(firstMesh.getWorldPosition().z + 1 > secoundMesh.getWorldPosition().z - 5.0 && firstMesh.getWorldPosition().z - 1 < secoundMesh.getWorldPosition().z - 5.0)
-                            || firstMesh.getWorldPosition().x - 0.8 > secoundMesh.getWorldPosition().x + 0.5
-                            || firstMesh.getWorldPosition().x + 0.8 < secoundMesh.getWorldPosition().x - 0.5
-
-                f = !(firstMesh.getWorldPosition().z - 1 < secoundMesh.getWorldPosition().z + 5.0 && firstMesh.getWorldPosition().z + 1 > secoundMesh.getWorldPosition().z + 5.0)
-                            || firstMesh.getWorldPosition().x - 0.8 > secoundMesh.getWorldPosition().x + 0.5
-                            || firstMesh.getWorldPosition().x + 0.8 < secoundMesh.getWorldPosition().x - 0.5
-
-                if (!t) {
-                    moveablewall.translateGlobal(Vector3f(-0.06f, 0.0f, 0.0f))
-                }
-                if (!g) {
-                    moveablewall.translateGlobal(Vector3f(0.06f, 0.0f, 0.0f))
-                }
-                if (!h) {
-                    moveablewall.translateGlobal(Vector3f(0.0f, 0.0f, -0.06f))
-                }
-                if (!f) {
-                    moveablewall.translateGlobal(Vector3f(0.0f, 0.0f, 0.06f))
-                }
-
-            }
+        if (!t) {
+            moveablewall.translateGlobal(Vector3f(-0.06f, 0.0f, 0.0f))
+        }
+        if (!g) {
+            moveablewall.translateGlobal(Vector3f(0.06f, 0.0f, 0.0f))
+        }
+        if (!h) {
+            moveablewall.translateGlobal(Vector3f(0.0f, 0.0f, -0.06f))
+        }
+        if (!f) {
+            moveablewall.translateGlobal(Vector3f(0.0f, 0.0f, 0.06f))
         }
 
     }
