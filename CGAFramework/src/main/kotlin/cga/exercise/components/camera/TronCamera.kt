@@ -6,7 +6,7 @@ import org.joml.Math
 import org.joml.Matrix4f
 
 class TronCamera (fov: Float = 90f, width: Float = 16f, height: Float = 9f, var nearPlane: Float = 0.1f,
-                  var farPlane: Float = 100f ): Transformable(), ICamera {
+                  var farPlane: Float = 600f ): Transformable(), ICamera {
 
     var fieldOfView: Float
     var aspectRatio: Float

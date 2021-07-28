@@ -32,8 +32,9 @@ class Scene(private val window: GameWindow) {
     var mapcameraobjekt: Renderable
     var player: Renderable
     var lantern : Renderable
-    // var cycle : Renderable
     var mac : Renderable
+    var buttonBase : Renderable
+    var skyBox : Renderable
 
     /** Labyrint */
     private val meshListMazeFloor = mutableListOf<Mesh>()
@@ -47,9 +48,6 @@ class Scene(private val window: GameWindow) {
     val camera = TronCamera()
 
     val objList = mutableListOf<Renderable>()
-    val objHitbox = mutableListOf<Float>()
-    val wallHorizontalHitbox = mutableListOf<Double>()
-    val wallVerticalHitbox = mutableListOf<Double>()
 
     /** Var´s */
     val pointLight : PointLight
@@ -133,11 +131,12 @@ class Scene(private val window: GameWindow) {
         mazeTop.translateLocal(Vector3f(0f,1f,0f))
 
         /** Modelloader */
-        // cycle = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
         player = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
         mapcameraobjekt = ModelLoader.loadModel("assets/among_us_obj/among us.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
         lantern = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(-0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
         mac = ModelLoader.loadModel("assets/models/mac10.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+        buttonBase = ModelLoader.loadModel("assets/ButtonBase/Buttonbase.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+        skyBox = ModelLoader.loadModel("assets/SkyBox/skybox.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
 
         moveablewall = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
 
@@ -146,6 +145,9 @@ class Scene(private val window: GameWindow) {
             walls.add(ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!"))
             x++
         }
+
+        skyBox.scaleLocal(Vector3f(5f))
+        skyBox.translateGlobal(Vector3f(-5f, 0f, -5f))
 
         /** Camerastart Position */
         // camera.parent = player
@@ -164,10 +166,8 @@ class Scene(private val window: GameWindow) {
         /** Pistole */
         mac.scaleLocal(Vector3f(0.008f))
         mac.translateLocal(Vector3f(20f, 150f, -35f))
-        //mac.parent = player
 
         /** Objektplatzierung */
-        // cycle.scaleLocal(Vector3f(0.0f))
         lantern.translateLocal(Vector3f(5f, 1f, 0f))
 
         /** Lichter */
@@ -176,14 +176,15 @@ class Scene(private val window: GameWindow) {
         spotLight.rotateLocal(toRadians(-10f), PI.toFloat(),0f)
         pointLight.parent = lantern
         spotLight.parent = mapcameraobjekt
-        //lantern.parent = pointLight
+
+        buttonBase.translateGlobal(Vector3f(0.0f, -2f, -1.0f))
+        buttonBase.rotateLocal(0.0f, toRadians(90f), 0f)
 
 
         /** Mauern */
         camera.parent = moveablewall
         moveablewall.scaleLocal(Vector3f(0.3f))
         moveablewall.translateLocal(Vector3f(-30f, 0.0f, -9.0f))
-        // moveablewall.rotateLocal(0f, toRadians(180f), 0f)
 
         var f = 0
         while (f < 80) {
@@ -355,19 +356,16 @@ class Scene(private val window: GameWindow) {
         spotLight.bind(tronShader, "spot", camera.getCalculateViewMatrix())
         pointLight.bind(tronShader, "point")
 
-        tronShader.setUniform("farbe", Vector3f(abs(sin(t)), abs(sin(t/2f)), abs(sin(t/3f))))
-        //cycle.render(tronShader)
+        // tronShader.setUniform("farbe", Vector3f(abs(sin(t)), abs(sin(t/2f)), abs(sin(t/3f))))
 
-        tronShader.setUniform("farbe", Vector3f(0f,1f,0f))
-        tronShader.setUniform("farbe", Vector3f(1f,1f,1f))
+        tronShader.setUniform("farbe", Vector3f(1f,0.2f,0f))
+        tronShader.setUniform("farbe", Vector3f(0.6f,0.6f,0.6f))
         mazeFloor.render(tronShader)
-        // mazeTop.render(tronShader)
         mapcameraobjekt.render(tronShader)
         lantern.render(tronShader)
         mac.render(tronShader)
-        // player.render(tronShader)
-
-        // moveablewall.render(tronShader)
+        buttonBase.render(tronShader)
+        skyBox.render(tronShader)
 
         var z = 0
         while (z < 80) {
@@ -379,7 +377,7 @@ class Scene(private val window: GameWindow) {
 
     fun update(dt: Float, t: Float) {
 
-        pointLight.lightColor = Vector3f(abs(sin(t/3f)), abs(sin(t/4f)), abs(sin(t/2)))
+        // pointLight.lightColor = Vector3f(abs(sin(t/3f)), abs(sin(t/4f)), abs(sin(t/2)))
 
         var x = 0
 
@@ -395,8 +393,8 @@ class Scene(private val window: GameWindow) {
 
                 if(window.getKeyState(GLFW_KEY_S)) {
                     while (x < 80) {
-                        collisionTest2(moveablewall, objList[x], 'D')
-                        collisionTest2(moveablewall, objList[x], 'S')
+                        collisionTest2(moveablewall, objList[x])
+                        collisionTest2(moveablewall, objList[x])
                         x++
                     }
                     moveablewall.translateLocal(Vector3f(0.2f, 0.0f, 0.2f))
@@ -404,8 +402,8 @@ class Scene(private val window: GameWindow) {
                 }
                 else if(window.getKeyState(GLFW_KEY_W)) {
                     while (x < 80) {
-                        collisionTest2(moveablewall, objList[x], 'D')
-                        collisionTest2(moveablewall, objList[x], 'W')
+                        collisionTest2(moveablewall, objList[x])
+                        collisionTest2(moveablewall, objList[x])
                         x++
                     }
                     moveablewall.translateLocal(Vector3f(0.2f, 0.0f, -0.2f))
@@ -413,7 +411,7 @@ class Scene(private val window: GameWindow) {
                 }
                 else {
                     while (x < 80) {
-                        collisionTest2(moveablewall, objList[x], 'D')
+                        collisionTest2(moveablewall, objList[x])
                         x++
                     }
                     moveablewall.translateLocal(Vector3f(0.2f, 0.0f, 0.0f))
@@ -424,7 +422,7 @@ class Scene(private val window: GameWindow) {
             window.getKeyState(GLFW_KEY_S) && !window.getKeyState(GLFW_KEY_D) && !window.getKeyState(GLFW_KEY_A) -> {
 
                 while (x < 80) {
-                    collisionTest2(moveablewall, objList[x], 'S')
+                    collisionTest2(moveablewall, objList[x])
                     x++
                 }
                 moveablewall.translateLocal(Vector3f(0.0f, 0.0f, 0.2f))
@@ -434,7 +432,7 @@ class Scene(private val window: GameWindow) {
             window.getKeyState(GLFW_KEY_W) && !window.getKeyState(GLFW_KEY_D) && !window.getKeyState(GLFW_KEY_A) -> {
 
                 while (x < 80) {
-                    collisionTest2(moveablewall, objList[x], 'W')
+                    collisionTest2(moveablewall, objList[x])
                     x++
                 }
                 moveablewall.translateLocal(Vector3f(0.0f, 0.0f, -0.2f))
@@ -445,8 +443,8 @@ class Scene(private val window: GameWindow) {
 
                 if(window.getKeyState(GLFW_KEY_S)) {
                     while (x < 80) {
-                        collisionTest2(moveablewall, objList[x], 'A')
-                        collisionTest2(moveablewall, objList[x], 'S')
+                        collisionTest2(moveablewall, objList[x])
+                        collisionTest2(moveablewall, objList[x])
                         x++
                     }
                     moveablewall.translateLocal(Vector3f(-0.2f, 0.0f, 0.2f))
@@ -454,25 +452,21 @@ class Scene(private val window: GameWindow) {
                 }
                 else if (window.getKeyState(GLFW_KEY_W)) {
                     while (x < 80) {
-                        collisionTest2(moveablewall, objList[x], 'A')
-                        collisionTest2(moveablewall, objList[x], 'W')
+                        collisionTest2(moveablewall, objList[x])
+                        collisionTest2(moveablewall, objList[x])
                         x++
                     }
                     moveablewall.translateLocal(Vector3f(-0.2f, 0.0f, -0.2f))
                 }
                 else {
                     while (x < 80) {
-                        collisionTest2(moveablewall, objList[x], 'A')
+                        collisionTest2(moveablewall, objList[x])
                         x++
                     }
                     moveablewall.translateLocal(Vector3f(-0.2f, 0.0f, 0.0f))
                 }
 
-
-
             }
-
-
 
             /** Cameraview */
             /** 1st Person */
@@ -513,7 +507,7 @@ class Scene(private val window: GameWindow) {
 
     }
 
-    fun collisionTest2(firstMesh: Renderable, secoundMesh: Renderable, key: Char) {
+    fun collisionTest2(firstMesh: Renderable, secoundMesh: Renderable) {
 
         var vert = false
 
@@ -595,8 +589,6 @@ class Scene(private val window: GameWindow) {
                 if (!f) {
                     moveablewall.translateGlobal(Vector3f(0.0f, 0.0f, 0.06f))
                 }
-
-
 
             }
 
