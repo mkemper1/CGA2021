@@ -50,7 +50,9 @@ class Scene(private val window: GameWindow) {
     val objList = mutableListOf<Renderable>()
     val wallVerticalHitbox = mutableListOf( 0.5f, 5.0f)
     val wallHorizontalHitbox = mutableListOf( 5.0f, 0.5f)
-    val buttonHitbox = mutableListOf( 2f, 2f )
+    val buttonHitbox = mutableListOf( 0.2f, 0.5f )
+
+    var test = false
 
     /** Var´s */
     val pointLight : PointLight
@@ -397,7 +399,7 @@ class Scene(private val window: GameWindow) {
             window.getKeyState(GLFW_KEY_D) -> {
 
                 if(window.getKeyState(GLFW_KEY_S)) {
-                    while (x < 80) {
+                    while (x < objList.size) {
                         collisionTest2(moveablewall, objList[x])
                         collisionTest2(moveablewall, objList[x])
                         x++
@@ -406,7 +408,7 @@ class Scene(private val window: GameWindow) {
 
                 }
                 else if(window.getKeyState(GLFW_KEY_W)) {
-                    while (x < 80) {
+                    while (x < objList.size) {
                         collisionTest2(moveablewall, objList[x])
                         collisionTest2(moveablewall, objList[x])
                         x++
@@ -415,7 +417,7 @@ class Scene(private val window: GameWindow) {
 
                 }
                 else {
-                    while (x < 80) {
+                    while (x < objList.size) {
                         collisionTest2(moveablewall, objList[x])
                         x++
                     }
@@ -426,7 +428,7 @@ class Scene(private val window: GameWindow) {
 
             window.getKeyState(GLFW_KEY_S) && !window.getKeyState(GLFW_KEY_D) && !window.getKeyState(GLFW_KEY_A) -> {
 
-                while (x < 80) {
+                while (x < objList.size) {
                     collisionTest2(moveablewall, objList[x])
                     x++
                 }
@@ -436,7 +438,7 @@ class Scene(private val window: GameWindow) {
 
             window.getKeyState(GLFW_KEY_W) && !window.getKeyState(GLFW_KEY_D) && !window.getKeyState(GLFW_KEY_A) -> {
 
-                while (x < 80) {
+                while (x < objList.size) {
                     collisionTest2(moveablewall, objList[x])
                     x++
                 }
@@ -447,7 +449,7 @@ class Scene(private val window: GameWindow) {
             window.getKeyState(GLFW_KEY_A) -> {
 
                 if(window.getKeyState(GLFW_KEY_S)) {
-                    while (x < 80) {
+                    while (x < objList.size) {
                         collisionTest2(moveablewall, objList[x])
                         collisionTest2(moveablewall, objList[x])
                         x++
@@ -456,7 +458,7 @@ class Scene(private val window: GameWindow) {
 
                 }
                 else if (window.getKeyState(GLFW_KEY_W)) {
-                    while (x < 80) {
+                    while (x < objList.size) {
                         collisionTest2(moveablewall, objList[x])
                         collisionTest2(moveablewall, objList[x])
                         x++
@@ -464,7 +466,7 @@ class Scene(private val window: GameWindow) {
                     moveablewall.translateLocal(Vector3f(-0.2f, 0.0f, -0.2f))
                 }
                 else {
-                    while (x < 80) {
+                    while (x < objList.size) {
                         collisionTest2(moveablewall, objList[x])
                         x++
                     }
@@ -472,6 +474,11 @@ class Scene(private val window: GameWindow) {
                 }
 
             }
+
+            test -> objList[80].translateGlobal(Vector3f(0.0f, 0.0f, -0.01f))
+
+            // objList[0].getWorldZAxis().angle(moveablewall.getZAxis()) < toRadians(50.0) ->  objList[80].translateGlobal(Vector3f(0.0f, 0.0f, -0.001f))
+            // objList[0].getWorldZAxis().angle(moveablewall.getZAxis()) > toRadians(130.0) ->  objList[80].translateGlobal(Vector3f(0.0f, 0.0f, -0.001f))
 
             /** Cameraview */
             /** 1st Person */
@@ -513,8 +520,6 @@ class Scene(private val window: GameWindow) {
     }
 
     fun collisionTest2(firstMesh: Renderable, secoundMesh: Renderable) {
-
-        var vert = false
 
         val t: Boolean
         val g: Boolean
@@ -615,7 +620,41 @@ class Scene(private val window: GameWindow) {
 
     }
 
+    fun buttonPress(firstMesh: Renderable, secoundMesh: Renderable): Boolean {
+
+        val minusX: Float
+        val plusX: Float
+        val minusZ: Float
+
+        val h: Boolean
+
+
+        var bool = true
+
+        minusX = secoundMesh.getWorldPosition().x - buttonHitbox[0]
+        plusX = secoundMesh.getWorldPosition().x + buttonHitbox[0]
+        minusZ = secoundMesh.getWorldPosition().z - 2
+
+        h = !(firstMesh.getWorldPosition().z + 1 > minusZ && firstMesh.getWorldPosition().z - 1 < minusZ)
+                || firstMesh.getWorldPosition().x - 0.8 > plusX
+                || firstMesh.getWorldPosition().x + 0.8 < minusX
+
+        if (!h) {
+            bool = false
+        }
+
+        return bool
+
+    }
+
     fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {
+
+        if(!buttonPress(moveablewall, objList[80])) {
+
+            if(window.getKeyState(GLFW_KEY_E) && !test) test = true
+            else if(window.getKeyState(GLFW_KEY_E) && test) test = false
+
+        }
 
     }
 
