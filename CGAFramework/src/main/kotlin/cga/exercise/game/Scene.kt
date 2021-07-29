@@ -35,6 +35,7 @@ class Scene(private val window: GameWindow) {
     var mac : Renderable
     var buttonBase : Renderable
     var skyBox : Renderable
+    var gate : Renderable
 
     /** Labyrint */
     private val meshListMazeFloor = mutableListOf<Mesh>()
@@ -144,6 +145,7 @@ class Scene(private val window: GameWindow) {
         skyBox = ModelLoader.loadModel("assets/SkyBox/skybox.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
 
         moveablewall = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+        gate = ModelLoader.loadModel("assets/Gate/Gate.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
 
         var x = 0
         while (x < 80) {
@@ -335,6 +337,10 @@ class Scene(private val window: GameWindow) {
         walls[78].translateLocal(Vector3f(-100f, 0.0f, -160f))
         walls[79].translateLocal(Vector3f(-120f, 0.0f, -160f))
 
+
+        gate.scaleLocal(Vector3f(0.3f))
+        gate.translateGlobal(Vector3f(0.0f, 2.0f, 0.0f))
+
         /** Mauern Hitbox */
 
 
@@ -373,6 +379,7 @@ class Scene(private val window: GameWindow) {
         mac.render(tronShader)
         buttonBase.render(tronShader)
         skyBox.render(tronShader)
+        gate.render(tronShader)
 
         var z = 0
         while (z < 80) {
@@ -671,13 +678,7 @@ class Scene(private val window: GameWindow) {
             /** hoch-runter */
             camera.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.05f), 0f, 0f)
             moveablewall.rotateLocal(0f, toRadians(deltaX.toFloat() * -0.05f), 0f)
-            /** Fliegen mit Taste F */
-            // when {
-            //     window.getKeyState(GLFW_KEY_F) -> {
-            //     player.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.1f), 0f, 0f)
-            //         player.rotateLocal(0f, toRadians(deltaX.toFloat() * -0.06f), 0f)
-            //     }
-            // }
+
         }
         notFirstFrame = true
 
