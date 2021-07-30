@@ -17,7 +17,10 @@ import org.joml.*
 import org.joml.Math.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11.*
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import java.util.EnumSet.range
+import kotlin.math.roundToLong
 
 
 /**
@@ -417,6 +420,8 @@ class Scene(private val window: GameWindow) {
     var z = objList[81].getPosition().x
     var z2 = objList[82].getPosition().x
 
+    var t = camera.rotateLocal(toRadians(1.0f), 0f, 0f)
+
     fun update(dt: Float, t: Float) {
 
         // pointLight.lightColor = Vector3f(abs(sin(t/3f)), abs(sin(t/4f)), abs(sin(t/2)))
@@ -692,8 +697,13 @@ class Scene(private val window: GameWindow) {
             /** links-rechts */
             player.rotateLocal(0f, toRadians(deltaX.toFloat() * -0.05f), 0f)
             /** hoch-runter */
-            camera.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.05f), 0f, 0f)
+            camera.rotateLocal(toRadians(deltaY.toFloat() * -0.05f), 0f, 0f)
             moveablewall.rotateLocal(0f, toRadians(deltaX.toFloat() * -0.05f), 0f)
+
+            if(1.3f < (camera.getYAxis().angle(moveablewall.getYAxis()))) {
+                camera.rotateLocal(toRadians(deltaY.toFloat() * 0.05f), 0f, 0f)
+                moveablewall.rotateLocal(0f, toRadians(deltaX.toFloat() * -0.05f), 0f)
+            }
 
         }
         notFirstFrame = true
