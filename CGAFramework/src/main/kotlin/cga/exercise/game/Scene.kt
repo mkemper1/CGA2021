@@ -17,6 +17,7 @@ import org.joml.*
 import org.joml.Math.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11.*
+import java.util.EnumSet.range
 
 
 /**
@@ -36,6 +37,10 @@ class Scene(private val window: GameWindow) {
     var buttonBase : Renderable
     var skyBox : Renderable
     var gate : Renderable
+    var leftDoor : Renderable
+    var rightDoor : Renderable
+    var dd1 : Renderable
+    var dd2 : Renderable
 
     /** Labyrint */
     private val meshListMazeFloor = mutableListOf<Mesh>()
@@ -49,9 +54,10 @@ class Scene(private val window: GameWindow) {
     val camera = TronCamera()
 
     val objList = mutableListOf<Renderable>()
-    val wallVerticalHitbox = mutableListOf( 0.5f, 5.0f)
-    val wallHorizontalHitbox = mutableListOf( 5.0f, 0.5f)
+    val wallVerticalHitbox = mutableListOf( 0.5f, 5.0f )
+    val wallHorizontalHitbox = mutableListOf( 5.0f, 0.5f )
     val buttonHitbox = mutableListOf( 0.2f, 0.5f )
+    val doorHitbox = mutableListOf( 1.5f, 0.3f )
 
     var test = false
 
@@ -146,6 +152,13 @@ class Scene(private val window: GameWindow) {
 
         moveablewall = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
         gate = ModelLoader.loadModel("assets/Gate/Gate.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+        leftDoor = ModelLoader.loadModel("assets/Gate/Door.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+        rightDoor = ModelLoader.loadModel("assets/Gate/Door.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+
+        dd1 = ModelLoader.loadModel("assets/Gate/Door.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+        dd2 = ModelLoader.loadModel("assets/Gate/Door.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+
+
 
         var x = 0
         while (x < 80) {
@@ -185,7 +198,7 @@ class Scene(private val window: GameWindow) {
         spotLight.parent = mapcameraobjekt
 
         /** Button */
-        buttonBase.translateGlobal(Vector3f(0.0f, -2f, -1.0f))
+        buttonBase.translateGlobal(Vector3f(-15.0f, -2f, -1.0f))
         buttonBase.rotateLocal(0.0f, toRadians(90f), 0f)
 
         /** Mauern */
@@ -202,8 +215,12 @@ class Scene(private val window: GameWindow) {
         }
 
         objList.add(buttonBase)
+        //objList.add(gate)
+        objList.add(leftDoor)
+        objList.add(rightDoor)
 
-        walls[0].translateLocal(Vector3f(0f, 0.0f, 0f))
+        /** Horizontale Wände */
+        walls[0].translateLocal(Vector3f(30f, 0.0f, 0f))
         walls[1].translateLocal(Vector3f(-20f, 0.0f, 0f))
         walls[2].translateLocal(Vector3f(-40f, 0.0f, 0f))
         walls[3].translateLocal(Vector3f(-60f, 0.0f, 0f))
@@ -212,137 +229,143 @@ class Scene(private val window: GameWindow) {
         walls[6].translateLocal(Vector3f(-120f, 0.0f, 0f))
         walls[7].translateLocal(Vector3f(-140f, 0.0f, 0f))
 
-        walls[8].translateLocal(Vector3f(10f, 0f, -10f))
-        walls[8].rotateLocal(0f, toRadians(90f), 0f)
-        walls[9].translateLocal(Vector3f(-10f, 0f, -10f))
-        walls[9].rotateLocal(0f, toRadians(90f), 0f)
-        walls[10].translateLocal(Vector3f(-90f, 0f, -10f))
-        walls[10].rotateLocal(0f, toRadians(90f), 0f)
-        walls[11].translateLocal(Vector3f(-110f, 0f, -10f))
-        walls[11].rotateLocal(0f, toRadians(90f), 0f)
-        walls[12].translateLocal(Vector3f(-150f, 0f, -10f))
-        walls[12].rotateLocal(0f, toRadians(90f), 0f)
+        walls[8].translateLocal(Vector3f(-40f, 0.0f, -20f))
+        walls[9].translateLocal(Vector3f(-80f, 0.0f, -20f))
 
-        walls[13].translateLocal(Vector3f(-40f, 0.0f, -20f))
-        walls[14].translateLocal(Vector3f(-80f, 0.0f, -20f))
+        walls[10].translateLocal(Vector3f(-20f, 0.0f, -40f))
+        walls[11].translateLocal(Vector3f(-40f, 0.0f, -40f))
+        walls[12].translateLocal(Vector3f(-80f, 0.0f, -40f))
+        walls[13].translateLocal(Vector3f(-120f, 0.0f, -40f))
 
-        walls[15].translateLocal(Vector3f(10f, 0f, -30f))
-        walls[15].rotateLocal(0f, toRadians(90f), 0f)
-        walls[16].translateLocal(Vector3f(-30f, 0f, -30f))
-        walls[16].rotateLocal(0f, toRadians(90f), 0f)
-        walls[17].translateLocal(Vector3f(-70f, 0f, -30f))
-        walls[17].rotateLocal(0f, toRadians(90f), 0f)
-        walls[18].translateLocal(Vector3f(-110f, 0f, -30f))
-        walls[18].rotateLocal(0f, toRadians(90f), 0f)
-        walls[19].translateLocal(Vector3f(-130f, 0f, -30f))
-        walls[19].rotateLocal(0f, toRadians(90f), 0f)
-        walls[20].translateLocal(Vector3f(-150f, 0f, -30f))
-        walls[20].rotateLocal(0f, toRadians(90f), 0f)
+        walls[14].translateLocal(Vector3f( 0f, 0.0f, -60f))
+        walls[15].translateLocal(Vector3f(-40f, 0.0f, -60f))
+        walls[16].translateLocal(Vector3f(-60f, 0.0f, -60f))
+        walls[17].translateLocal(Vector3f(-100f, 0.0f, -60f))
+        walls[18].translateLocal(Vector3f(-140f, 0.0f, -60f))
 
-        walls[21].translateLocal(Vector3f(-20f, 0.0f, -40f))
-        walls[22].translateLocal(Vector3f(-40f, 0.0f, -40f))
-        walls[23].translateLocal(Vector3f(-80f, 0.0f, -40f))
-        walls[24].translateLocal(Vector3f(-120f, 0.0f, -40f))
+        walls[19].translateLocal(Vector3f( -20f, 0.0f, -80f))
+        walls[20].translateLocal(Vector3f(-40f, 0.0f, -80f))
+        walls[21].translateLocal(Vector3f(-60f, 0.0f, -80f))
+        walls[22].translateLocal(Vector3f(-80f, 0.0f, -80f))
 
-        walls[25].translateLocal(Vector3f(10f, 0f, -50f))
-        walls[25].rotateLocal(0f, toRadians(90f), 0f)
-        walls[26].translateLocal(Vector3f(-10f, 0f, -50f))
-        walls[26].rotateLocal(0f, toRadians(90f), 0f)
-        walls[27].translateLocal(Vector3f(-50f, 0f, -50f))
-        walls[27].rotateLocal(0f, toRadians(90f), 0f)
-        walls[28].translateLocal(Vector3f(-90f, 0f, -50f))
-        walls[28].rotateLocal(0f, toRadians(90f), 0f)
-        walls[29].translateLocal(Vector3f(-150f, 0f, -50f))
-        walls[29].rotateLocal(0f, toRadians(90f), 0f)
+        walls[23].translateLocal(Vector3f( -20f, 0.0f, -100f))
+        walls[24].translateLocal(Vector3f(-40f, 0.0f, -100f))
+        walls[25].translateLocal(Vector3f(-60f, 0.0f, -100f))
+        walls[26].translateLocal(Vector3f(-100f, 0.0f, -100f))
+        walls[27].translateLocal(Vector3f(-120f, 0.0f, -100f))
 
-        walls[30].translateLocal(Vector3f( 0f, 0.0f, -60f))
-        walls[31].translateLocal(Vector3f(-40f, 0.0f, -60f))
-        walls[32].translateLocal(Vector3f(-60f, 0.0f, -60f))
-        walls[33].translateLocal(Vector3f(-100f, 0.0f, -60f))
-        walls[34].translateLocal(Vector3f(-140f, 0.0f, -60f))
+        walls[28].translateLocal(Vector3f( 0f, 0.0f, -120f))
+        walls[29].translateLocal(Vector3f(-80f, 0.0f, -120f))
+        walls[30].translateLocal(Vector3f(-100f, 0.0f, -120f))
+        walls[31].translateLocal(Vector3f(-120f, 0.0f, -120f))
 
-        walls[35].translateLocal(Vector3f(10f, 0f, -70f))
-        walls[35].rotateLocal(0f, toRadians(90f), 0f)
-        walls[36].translateLocal(Vector3f(-10f, 0f, -70f))
-        walls[36].rotateLocal(0f, toRadians(90f), 0f)
-        walls[37].translateLocal(Vector3f(-110f, 0f, -70f))
-        walls[37].rotateLocal(0f, toRadians(90f), 0f)
-        walls[38].translateLocal(Vector3f(-130f, 0f, -70f))
-        walls[38].rotateLocal(0f, toRadians(90f), 0f)
-        walls[39].translateLocal(Vector3f(-150f, 0f, -70f))
-        walls[39].rotateLocal(0f, toRadians(90f), 0f)
+        walls[32].translateLocal(Vector3f( -40f, 0.0f, -140f))
+        walls[33].translateLocal(Vector3f(-80f, 0.0f, -140f))
+        walls[34].translateLocal(Vector3f(-100f, 0.0f, -140f))
+        walls[35].translateLocal(Vector3f(-120f, 0.0f, -140f))
 
-        walls[40].translateLocal(Vector3f( -20f, 0.0f, -80f))
-        walls[41].translateLocal(Vector3f(-40f, 0.0f, -80f))
-        walls[42].translateLocal(Vector3f(-60f, 0.0f, -80f))
-        walls[43].translateLocal(Vector3f(-80f, 0.0f, -80f))
+        walls[36].translateLocal(Vector3f( 0f, 0.0f, -160f))
+        walls[37].translateLocal(Vector3f(-20f, 0.0f, -160f))
+        walls[38].translateLocal(Vector3f(-40f, 0.0f, -160f))
+        walls[39].translateLocal(Vector3f(-60f, 0.0f, -160f))
+        walls[40].translateLocal(Vector3f(-80f, 0.0f, -160f))
+        walls[41].translateLocal(Vector3f(-100f, 0.0f, -160f))
+        walls[42].translateLocal(Vector3f(-120f, 0.0f, -160f))
 
-        walls[44].translateLocal(Vector3f(10f, 0f, -90f))
+        walls[43].translateLocal(Vector3f(10f, 0f, -10f))
+        walls[43].rotateLocal(0f, toRadians(90f), 0f)
+        walls[44].translateLocal(Vector3f(-10f, 0f, -10f))
         walls[44].rotateLocal(0f, toRadians(90f), 0f)
-        walls[45].translateLocal(Vector3f(-130f, 0f, -90f))
+        walls[45].translateLocal(Vector3f(-90f, 0f, -10f))
         walls[45].rotateLocal(0f, toRadians(90f), 0f)
-        walls[46].translateLocal(Vector3f(-150f, 0f, -90f))
+        walls[46].translateLocal(Vector3f(-110f, 0f, -10f))
         walls[46].rotateLocal(0f, toRadians(90f), 0f)
+        walls[47].translateLocal(Vector3f(-150f, 0f, -10f))
+        walls[47].rotateLocal(0f, toRadians(90f), 0f)
 
-        walls[47].translateLocal(Vector3f( -20f, 0.0f, -100f))
-        walls[48].translateLocal(Vector3f(-40f, 0.0f, -100f))
-        walls[49].translateLocal(Vector3f(-60f, 0.0f, -100f))
-        walls[50].translateLocal(Vector3f(-100f, 0.0f, -100f))
-        walls[51].translateLocal(Vector3f(-120f, 0.0f, -100f))
-
-        walls[52].translateLocal(Vector3f(10f, 0f, -110f))
+        walls[48].translateLocal(Vector3f(10f, 0f, -30f))
+        walls[48].rotateLocal(0f, toRadians(90f), 0f)
+        walls[49].translateLocal(Vector3f(-30f, 0f, -30f))
+        walls[49].rotateLocal(0f, toRadians(90f), 0f)
+        walls[50].translateLocal(Vector3f(-70f, 0f, -30f))
+        walls[50].rotateLocal(0f, toRadians(90f), 0f)
+        walls[51].translateLocal(Vector3f(-110f, 0f, -30f))
+        walls[51].rotateLocal(0f, toRadians(90f), 0f)
+        walls[52].translateLocal(Vector3f(-130f, 0f, -30f))
         walls[52].rotateLocal(0f, toRadians(90f), 0f)
-        walls[53].translateLocal(Vector3f(-10f, 0f, -110f))
+        walls[53].translateLocal(Vector3f(-150f, 0f, -30f))
         walls[53].rotateLocal(0f, toRadians(90f), 0f)
-        walls[54].translateLocal(Vector3f(-30f, 0f, -110f))
+
+        walls[54].translateLocal(Vector3f(10f, 0f, -50f))
         walls[54].rotateLocal(0f, toRadians(90f), 0f)
-        walls[55].translateLocal(Vector3f(-70f, 0f, -110f))
+        walls[55].translateLocal(Vector3f(-10f, 0f, -50f))
         walls[55].rotateLocal(0f, toRadians(90f), 0f)
-        walls[56].translateLocal(Vector3f(-150f, 0f, -110f))
+        walls[56].translateLocal(Vector3f(-50f, 0f, -50f))
         walls[56].rotateLocal(0f, toRadians(90f), 0f)
+        walls[57].translateLocal(Vector3f(-90f, 0f, -50f))
+        walls[57].rotateLocal(0f, toRadians(90f), 0f)
+        walls[58].translateLocal(Vector3f(-150f, 0f, -50f))
+        walls[58].rotateLocal(0f, toRadians(90f), 0f)
 
-        walls[57].translateLocal(Vector3f( 0f, 0.0f, -120f))
-        walls[58].translateLocal(Vector3f(-80f, 0.0f, -120f))
-        walls[59].translateLocal(Vector3f(-100f, 0.0f, -120f))
-        walls[60].translateLocal(Vector3f(-120f, 0.0f, -120f))
-
-        walls[61].translateLocal(Vector3f(10f, 0f, -130f))
+        walls[59].translateLocal(Vector3f(10f, 0f, -70f))
+        walls[59].rotateLocal(0f, toRadians(90f), 0f)
+        walls[60].translateLocal(Vector3f(-10f, 0f, -70f))
+        walls[60].rotateLocal(0f, toRadians(90f), 0f)
+        walls[61].translateLocal(Vector3f(-110f, 0f, -70f))
         walls[61].rotateLocal(0f, toRadians(90f), 0f)
-        walls[62].translateLocal(Vector3f(-10f, 0f, -130f))
+        walls[62].translateLocal(Vector3f(-130f, 0f, -70f))
         walls[62].rotateLocal(0f, toRadians(90f), 0f)
-        walls[63].translateLocal(Vector3f(-30f, 0f, -130f))
+        walls[63].translateLocal(Vector3f(-150f, 0f, -70f))
         walls[63].rotateLocal(0f, toRadians(90f), 0f)
-        walls[64].translateLocal(Vector3f(-50f, 0f, -130f))
+
+        walls[64].translateLocal(Vector3f(10f, 0f, -90f))
         walls[64].rotateLocal(0f, toRadians(90f), 0f)
-        walls[65].translateLocal(Vector3f(-70f, 0f, -130f))
+        walls[65].translateLocal(Vector3f(-130f, 0f, -90f))
         walls[65].rotateLocal(0f, toRadians(90f), 0f)
-        walls[66].translateLocal(Vector3f(-150f, 0f, -130f))
+        walls[66].translateLocal(Vector3f(-150f, 0f, -90f))
         walls[66].rotateLocal(0f, toRadians(90f), 0f)
 
-        walls[67].translateLocal(Vector3f( -40f, 0.0f, -140f))
-        walls[68].translateLocal(Vector3f(-80f, 0.0f, -140f))
-        walls[69].translateLocal(Vector3f(-100f, 0.0f, -140f))
-        walls[70].translateLocal(Vector3f(-120f, 0.0f, -140f))
-
-        walls[71].translateLocal(Vector3f(10f, 0f, -150f))
+        walls[67].translateLocal(Vector3f(10f, 0f, -110f))
+        walls[67].rotateLocal(0f, toRadians(90f), 0f)
+        walls[68].translateLocal(Vector3f(-10f, 0f, -110f))
+        walls[68].rotateLocal(0f, toRadians(90f), 0f)
+        walls[69].translateLocal(Vector3f(-30f, 0f, -110f))
+        walls[69].rotateLocal(0f, toRadians(90f), 0f)
+        walls[70].translateLocal(Vector3f(-70f, 0f, -110f))
+        walls[70].rotateLocal(0f, toRadians(90f), 0f)
+        walls[71].translateLocal(Vector3f(-150f, 0f, -110f))
         walls[71].rotateLocal(0f, toRadians(90f), 0f)
-        walls[72].translateLocal(Vector3f(-150f, 0f, -150f))
+
+        walls[72].translateLocal(Vector3f(10f, 0f, -130f))
         walls[72].rotateLocal(0f, toRadians(90f), 0f)
+        walls[73].translateLocal(Vector3f(-10f, 0f, -130f))
+        walls[73].rotateLocal(0f, toRadians(90f), 0f)
+        walls[74].translateLocal(Vector3f(-30f, 0f, -130f))
+        walls[74].rotateLocal(0f, toRadians(90f), 0f)
+        walls[75].translateLocal(Vector3f(-50f, 0f, -130f))
+        walls[75].rotateLocal(0f, toRadians(90f), 0f)
+        walls[76].translateLocal(Vector3f(-70f, 0f, -130f))
+        walls[76].rotateLocal(0f, toRadians(90f), 0f)
+        walls[77].translateLocal(Vector3f(-150f, 0f, -130f))
+        walls[77].rotateLocal(0f, toRadians(90f), 0f)
 
-        walls[73].translateLocal(Vector3f( 0f, 0.0f, -160f))
-        walls[74].translateLocal(Vector3f(-20f, 0.0f, -160f))
-        walls[75].translateLocal(Vector3f(-40f, 0.0f, -160f))
-        walls[76].translateLocal(Vector3f(-60f, 0.0f, -160f))
-        walls[77].translateLocal(Vector3f(-80f, 0.0f, -160f))
-        walls[78].translateLocal(Vector3f(-100f, 0.0f, -160f))
-        walls[79].translateLocal(Vector3f(-120f, 0.0f, -160f))
+        walls[78].translateLocal(Vector3f(10f, 0f, -150f))
+        walls[78].rotateLocal(0f, toRadians(90f), 0f)
+        walls[79].translateLocal(Vector3f(-150f, 0f, -150f))
+        walls[79].rotateLocal(0f, toRadians(90f), 0f)
 
+        gate.scaleLocal(Vector3f(0.5f))
+        gate.translateGlobal(Vector3f(0.0f, 0.0f, 0.0f))
 
-        gate.scaleLocal(Vector3f(0.3f))
-        gate.translateGlobal(Vector3f(0.0f, 2.0f, 0.0f))
+        leftDoor.scaleLocal(Vector3f(0.5f))
+        leftDoor.translateGlobal(Vector3f(2.0f, 0.0f, 0.0f))
+        rightDoor.scaleLocal(Vector3f(0.5f))
+        rightDoor.translateGlobal(Vector3f(-2.0f, 0.0f, 0.0f))
 
-        /** Mauern Hitbox */
-
+        dd1.scaleLocal(Vector3f(0.5f))
+        dd1.translateGlobal(Vector3f(4.0f, 0.0f, 0.0f))
+        dd2.scaleLocal(Vector3f(0.5f))
+        dd2.translateGlobal(Vector3f(-4.0f, 0.0f, 0.0f))
 
 
         /** Steuerung Info an Console*/
@@ -376,10 +399,12 @@ class Scene(private val window: GameWindow) {
         mazeFloor.render(tronShader)
         mapcameraobjekt.render(tronShader)
         lantern.render(tronShader)
-        mac.render(tronShader)
+        //mac.render(tronShader)
         buttonBase.render(tronShader)
         skyBox.render(tronShader)
         gate.render(tronShader)
+        leftDoor.render(tronShader)
+        rightDoor.render(tronShader)
 
         var z = 0
         while (z < 80) {
@@ -388,6 +413,9 @@ class Scene(private val window: GameWindow) {
         }
 
     }
+
+    var z = objList[81].getPosition().x
+    var z2 = objList[82].getPosition().x
 
     fun update(dt: Float, t: Float) {
 
@@ -482,10 +510,19 @@ class Scene(private val window: GameWindow) {
 
             }
 
-            test -> objList[80].translateGlobal(Vector3f(0.0f, 0.0f, -0.01f))
+            test -> {
+                if (objList[81].getWorldPosition().x < dd1.getWorldPosition().x || objList[82].getWorldPosition().x > dd2.getWorldPosition().x) {
+                    objList[81].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
+                    objList[82].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
+                }
+            }
 
-            // objList[0].getWorldZAxis().angle(moveablewall.getZAxis()) < toRadians(50.0) ->  objList[80].translateGlobal(Vector3f(0.0f, 0.0f, -0.001f))
-            // objList[0].getWorldZAxis().angle(moveablewall.getZAxis()) > toRadians(130.0) ->  objList[80].translateGlobal(Vector3f(0.0f, 0.0f, -0.001f))
+            !test -> {
+                if (objList[81].getWorldPosition().x > z || objList[82].getWorldPosition().x < z2) {
+                    objList[81].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
+                    objList[82].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
+                }
+            }
 
             /** Cameraview */
             /** 1st Person */
@@ -533,64 +570,43 @@ class Scene(private val window: GameWindow) {
         val h: Boolean
         val f: Boolean
 
-        var minusX: Float
-        var plusX: Float
-        var minusZ: Float
-        var plusZ: Float
+        var minusX = 0.0f
+        var plusX = 0.0f
+        var minusZ = 0.0f
+        var plusZ = 0.0f
 
-        if (secoundMesh == objList[8] ||
-            secoundMesh == objList[9] ||
-            secoundMesh == objList[10] ||
-            secoundMesh == objList[11] ||
-            secoundMesh == objList[12] ||
-            secoundMesh == objList[15] ||
-            secoundMesh == objList[16] ||
-            secoundMesh == objList[17] ||
-            secoundMesh == objList[18] ||
-            secoundMesh == objList[19] ||
-            secoundMesh == objList[20] ||
-            secoundMesh == objList[25] ||
-            secoundMesh == objList[26] ||
-            secoundMesh == objList[27] ||
-            secoundMesh == objList[28] ||
-            secoundMesh == objList[29] ||
-            secoundMesh == objList[35] ||
-            secoundMesh == objList[36] ||
-            secoundMesh == objList[37] ||
-            secoundMesh == objList[38] ||
-            secoundMesh == objList[39] ||
-            secoundMesh == objList[44] ||
-            secoundMesh == objList[45] ||
-            secoundMesh == objList[46] ||
-            secoundMesh == objList[52] ||
-            secoundMesh == objList[53] ||
-            secoundMesh == objList[54] ||
-            secoundMesh == objList[55] ||
-            secoundMesh == objList[56] ||
-            secoundMesh == objList[61] ||
-            secoundMesh == objList[62] ||
-            secoundMesh == objList[63] ||
-            secoundMesh == objList[64] ||
-            secoundMesh == objList[65] ||
-            secoundMesh == objList[66] ||
-            secoundMesh == objList[71] ||
-            secoundMesh == objList[72]
-        ) {
-            minusX = secoundMesh.getWorldPosition().x - wallVerticalHitbox[0]
-            plusX = secoundMesh.getWorldPosition().x + wallVerticalHitbox[0]
-            minusZ = secoundMesh.getWorldPosition().z - wallVerticalHitbox[1]
-            plusZ = secoundMesh.getWorldPosition().z + wallVerticalHitbox[1]
-        } else {
-            minusX = secoundMesh.getWorldPosition().x - wallHorizontalHitbox[0]
-            plusX = secoundMesh.getWorldPosition().x + wallHorizontalHitbox[0]
-            minusZ = secoundMesh.getWorldPosition().z - wallHorizontalHitbox[1]
-            plusZ = secoundMesh.getWorldPosition().z + wallHorizontalHitbox[1]
-        }
-        if (secoundMesh == objList[80]) {
-            minusX = secoundMesh.getWorldPosition().x - buttonHitbox[0]
-            plusX = secoundMesh.getWorldPosition().x + buttonHitbox[0]
-            minusZ = secoundMesh.getWorldPosition().z - buttonHitbox[1]
-            plusZ = secoundMesh.getWorldPosition().z + buttonHitbox[1]
+        var count = 0
+
+        for (x in objList) {
+            /** Horizontale Wände */
+            if (x == secoundMesh && count < 43) {
+                minusX = secoundMesh.getWorldPosition().x - wallHorizontalHitbox[0]
+                plusX = secoundMesh.getWorldPosition().x + wallHorizontalHitbox[0]
+                minusZ = secoundMesh.getWorldPosition().z - wallHorizontalHitbox[1]
+                plusZ = secoundMesh.getWorldPosition().z + wallHorizontalHitbox[1]
+            }
+            /** Vertikale Wände */
+            if (x == secoundMesh && count > 42 && count < 80) {
+                minusX = secoundMesh.getWorldPosition().x - wallVerticalHitbox[0]
+                plusX = secoundMesh.getWorldPosition().x + wallVerticalHitbox[0]
+                minusZ = secoundMesh.getWorldPosition().z - wallVerticalHitbox[1]
+                plusZ = secoundMesh.getWorldPosition().z + wallVerticalHitbox[1]
+            }
+            /** Button */
+            if (x == secoundMesh && count == 80) {
+                minusX = secoundMesh.getWorldPosition().x - buttonHitbox[0]
+                plusX = secoundMesh.getWorldPosition().x + buttonHitbox[0]
+                minusZ = secoundMesh.getWorldPosition().z - buttonHitbox[1]
+                plusZ = secoundMesh.getWorldPosition().z + buttonHitbox[1]
+            }
+            /** Linkes und rechtes Tor */
+            if (x == secoundMesh && count > 80) {
+                minusX = secoundMesh.getWorldPosition().x - doorHitbox[0]
+                plusX = secoundMesh.getWorldPosition().x + doorHitbox[0]
+                minusZ = secoundMesh.getWorldPosition().z - doorHitbox[1]
+                plusZ = secoundMesh.getWorldPosition().z + doorHitbox[1]
+            }
+            count++
         }
 
         t = !(firstMesh.getWorldPosition().x + 1 > minusX && firstMesh.getWorldPosition().x - 1 < minusX)
