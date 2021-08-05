@@ -5,7 +5,7 @@ import cga.exercise.components.shader.ShaderProgram
 import org.joml.Math
 import org.joml.Matrix4f
 
-class TronCamera (fov: Float = 90f, width: Float = 16f, height: Float = 9f, var nearPlane: Float = 0.1f,
+class TronCamera (fov: Float = 70f, width: Float = 16f, height: Float = 9f, var nearPlane: Float = 0.1f,
                   var farPlane: Float = 600f ): Transformable(), ICamera {
 
     var fieldOfView: Float
