@@ -29,6 +29,11 @@ class Scene(private val window: GameWindow) {
     private val buttons = mutableListOf<Renderable>()
     private val buttonBases = mutableListOf<Renderable>()
     private val gateDoors = mutableListOf<Renderable>()
+    private val arrows = mutableListOf<Renderable>()
+    private val rats = mutableListOf<Renderable>()
+    private val ladders = mutableListOf<Renderable>()
+    private val lanterns = mutableListOf<Renderable>()
+    private val events = mutableListOf<Renderable>()
 
     private val buttonStatus = mutableListOf<Boolean>(false, false, false)
     private val buttonPressed = mutableListOf(0, 0, 0)
@@ -42,12 +47,13 @@ class Scene(private val window: GameWindow) {
     /** Renderables */
     var mapcameraobjekt: Renderable
     var player: Renderable
-    var lantern : Renderable
-    var mac : Renderable
     var skyBox : Renderable
     var gate : Renderable
     var cubeObject : Renderable
     var floor : Renderable
+    var ninja : Renderable
+    var monster : Renderable
+    var ghost : Renderable
 
     var moveablewall : Renderable
 
@@ -60,6 +66,12 @@ class Scene(private val window: GameWindow) {
     val buttonHitbox = mutableListOf( 0.5f, 0.5f )
     val gateDoorHorizontalHitbox = mutableListOf( 1.5f, 0.3f )
     val gateDoorVerticalHitbox = mutableListOf( 0.3f, 1.5f )
+    val arrowsHitbox = mutableListOf( 1f, 1f )
+    val laddersHitbox = mutableListOf( 1f, 1f )
+    val lanternsHitbox = mutableListOf( 1f, 1f )
+    val ninjaHitbox = mutableListOf( 1f, 1f )
+    val ghostHitbox = mutableListOf( 1f, 1f )
+    val monsterHitbox = mutableListOf( 1f, 1f )
 
     var buttonObject: Int = 0
 
@@ -69,10 +81,7 @@ class Scene(private val window: GameWindow) {
     var notFirstFrame = false
     var oldMousePosX = 0.0
     var oldMousePosY = 0.0
-    var cameracheck1 = true
-    var cameracheck2 = false
-    var cameracheck3 = false
-    var cameracheck4 = false
+
 
     val rnd = (1..4).random()
     var wallDespawn = 0
@@ -103,16 +112,17 @@ class Scene(private val window: GameWindow) {
         glDepthFunc(GL_LESS); GLError.checkThrow()
 
         /** Modelloader */
-        player = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
-        mapcameraobjekt = ModelLoader.loadModel("assets/among_us_obj/among us.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
-        lantern = ModelLoader.loadModel("assets/SA_LD_Medieval_Horn_Lantern_OBJ/SA_LD_Medieval_Horn_Lantern.obj", toRadians(-0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
-        mac = ModelLoader.loadModel("assets/models/mac10.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+        player = ModelLoader.loadModel("assets/CubeObject/cubeObject.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
+        mapcameraobjekt = ModelLoader.loadModel("assets/CubeObject/cubeObject.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
         skyBox = ModelLoader.loadModel("assets/SkyBox/skybox.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
 
         moveablewall = ModelLoader.loadModel("assets/models/wall.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
         gate = ModelLoader.loadModel("assets/Gate/Gate.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
         cubeObject = ModelLoader.loadModel("assets/CubeObject/cubeObject.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
         floor = ModelLoader.loadModel("assets/NewWall/NewFloor/floor.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+        ninja = ModelLoader.loadModel("assets/Ninja/D1204A010.obj", toRadians(90f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
+        ghost = ModelLoader.loadModel("assets/Ghost/Ghost-Obj/Ghost.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
+        monster = ModelLoader.loadModel("assets/Monster/OogieBoogie.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!")
 
         var a = 0
         while (a < 196) {
@@ -146,6 +156,35 @@ class Scene(private val window: GameWindow) {
             a++
         }
 
+        a = 0
+        while (a < 4) {
+            arrows.add(ModelLoader.loadModel("assets/arrow/Arrow_Obj/Arrow.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!"))
+            a++
+        }
+        a = 0
+        while (a < 3) {
+            rats.add(ModelLoader.loadModel("assets/Spider/obj/Only_Spider_with_Animations_Export.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!"))
+            a++
+        }
+        a = 0
+        while (a < 4) {
+            ladders.add(ModelLoader.loadModel("assets/Ladder/Ladder.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!"))
+            a++
+        }
+
+        a = 0
+        while (a < 6) {
+            lanterns.add(ModelLoader.loadModel("assets/Lantern/street lamp.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("lantern Renderable can't be NULL!"))
+            a++
+        }
+
+        while (a < 6) {
+        events.add(ModelLoader.loadModel("assets/Button/Button.obj", toRadians(0f), toRadians(0f), 0f)?: throw Exception("Renderable can't be NULL!"))
+        a++
+        }
+
+
+
         /** Random elements */
         rndButtonSpawn()
         rndDoorSpawn()
@@ -160,27 +199,28 @@ class Scene(private val window: GameWindow) {
         /** Camerastart Position */
         camera.translateLocal(Vector3f(0f, 10f, .0f))
 
-        /** Playerstart Position */
-        player.translateLocal(Vector3f(-35f, 2f, -5f))
-        player.rotateLocal(0f, toRadians(180f), 0f)
+        /** MonsterStartPositionen */
+
+        ninja.translateGlobal(Vector3f(10f, 0f, 2f))
+        ninja.scaleLocal(Vector3f(0.02f))
+        ghost.translateGlobal(Vector3f(5f, 0f, 2f))
+        ghost.scaleLocal(Vector3f(0.02f))
+        monster.translateGlobal(Vector3f(15f, 0f, 2f))
+        monster.scaleLocal(Vector3f(0.015f))
 
         /** Orbitalecamera Position */
         mapcameraobjekt.scaleLocal(Vector3f(0.008f))
         mapcameraobjekt.translateLocal(Vector3f(10f, 3000f, 0f))
 
-        /** Pistole */
-        mac.scaleLocal(Vector3f(0.008f))
-        mac.translateLocal(Vector3f(20f, 150f, -35f))
 
-        /** Objektplatzierung */
-        lantern.translateLocal(Vector3f(5f, 1f, 0f))
+
 
         /** Lichter */
         pointLight = PointLight(Vector3f(0f, 2f, 0f), Vector3f(1f, 1f, 0f), Vector3f(1f, 0.5f, 0.1f))
-        spotLight = SpotLight(Vector3f(0f, 1f, -1f), Vector3f(2f,2f,0.1f), Vector3f(0.1f, 0.01f, 0.01f), Vector2f(toRadians(150f), toRadians(30f)))
-        spotLight.rotateLocal(toRadians(-10f), PI.toFloat(),0f)
-        pointLight.parent = lantern
-        spotLight.parent = mapcameraobjekt
+        spotLight = SpotLight(Vector3f(0f, 0f, -2f), Vector3f(1f,0.8f,0.8f), Vector3f(0.1f, 0.05f, 0.05f), Vector2f(toRadians(20f), toRadians(25f)))
+        spotLight.rotateLocal(toRadians(-5f), PI.toFloat(),0f)
+        pointLight.parent = walls[2]
+        spotLight.parent = camera
 
         /** Mauern */
         camera.parent = moveablewall
@@ -252,6 +292,53 @@ class Scene(private val window: GameWindow) {
             b++
         }
 
+        /** Pfeile ObjList: 477 - 481 */
+        var n = 0
+        while (n < arrows.size) {
+            arrows[n].translateGlobal(Vector3f(1f,1f,10f+n))
+            arrows[n].scaleLocal(Vector3f(5f))
+            objList.add(arrows[n])
+            n++
+        }
+
+        /** Raten ObjList: 482 - 485 */
+        var nn = 0
+        while (nn < rats.size) {
+            rats[nn].translateGlobal(Vector3f(1f,0f,16f+(nn*3)))
+            rats[nn].scaleLocal(Vector3f(0.01f))
+            objList.add(rats[nn])
+            nn++
+        }
+
+        /** Ladders ObjList: 485 - 489 */
+        var m = 0
+        while (m < ladders.size) {
+            ladders[m].translateGlobal(Vector3f(6f,3f,10f+(m*5)))
+            ladders[m].rotateLocal(0f, toRadians(-90f), 0f)
+            ladders[m].rotateLocal(toRadians(-20f), 0f, 0f)
+            ladders[m].scaleLocal(Vector3f(0.5f))
+            objList.add(ladders[m])
+            m++
+        }
+
+        /** Lantern ObjList: 450 - 454 */
+        var k = 0
+        while (k < lanterns.size) {
+            lanterns[k].translateGlobal(Vector3f(1.7f,0f,25f+(k*5)))
+            lanterns[k].scaleLocal(Vector3f(3f))
+            lanterns[k].rotateLocal(0f, toRadians(-180f), 0f)
+            objList.add(lanterns[k])
+            k++
+        }
+        /** Event ObjList: 455- 560 */
+        var l = 0
+        while (l < events.size) {
+            events[l].translateGlobal(Vector3f(0f,0f,0f))
+            events[l].scaleLocal(Vector3f(1f))
+            objList.add(events[l])
+            l++
+        }
+
         gate.scaleLocal(Vector3f(0.5f))
 
         //gate.scaleLocal(Vector3f(0.5f))
@@ -294,8 +381,8 @@ class Scene(private val window: GameWindow) {
 
         // tronShader.setUniform("farbe", Vector3f(abs(sin(t)), abs(sin(t/2f)), abs(sin(t/3f))))
 
-        tronShader.setUniform("farbe", Vector3f(1f,0.2f,0f))
         tronShader.setUniform("farbe", Vector3f(0.6f,0.6f,0.6f))
+      //  tronShader.setUniform("farbe", Vector3f(0.2f,0.2f,0.2f))
         //mapcameraobjekt.render(tronShader)
         // lantern.render(tronShader)
         //mac.render(tronShader)
@@ -304,6 +391,9 @@ class Scene(private val window: GameWindow) {
         // gate.render(tronShader)
         // cubeObject.render(tronShader)
         floor.render(tronShader)
+        ninja.render(tronShader)
+        monster.render(tronShader)
+        ghost.render(tronShader)
 
         var z = 0
         while (z < objList.size) {
@@ -404,7 +494,7 @@ class Scene(private val window: GameWindow) {
                         collision(moveablewall, objList[x])
                         x++
                     }
-                    moveablewall.translateLocal(Vector3f(-0.2f, 0.0f, 0.0f))
+                    moveablewall.translateLocal(Vector3f(-0.5f, 0.0f, 0.0f))
                 }
 
             }
@@ -412,36 +502,9 @@ class Scene(private val window: GameWindow) {
             /** Cameraview */
             /** 1st Person */
             window.getKeyState(GLFW_KEY_V) -> {
-                cameracheck1 = true
-                cameracheck2 = false
-                cameracheck3 = false
-                cameracheck4 = false
-                camera.parent = player
+
             }
-            /** Camera moveablewall */
-            window.getKeyState(GLFW_KEY_B) -> {
-                cameracheck1 = false
-                cameracheck2 = false
-                cameracheck2 = false
-                cameracheck4 = true
-                camera.parent = moveablewall
-            }
-            /** Camera 3 */
-            window.getKeyState(GLFW_KEY_N) -> {
-                cameracheck1 = false
-                cameracheck2 = false
-                cameracheck3 = true
-                cameracheck4 = false
-                player.parent = lantern
-            }
-            /** Camera 4 */
-            window.getKeyState(GLFW_KEY_M) -> {
-                cameracheck1 = false
-                cameracheck2 = false
-                cameracheck3 = false
-                cameracheck4 = true
-                camera.parent = mapcameraobjekt
-            }
+
 
         }
 
@@ -580,6 +643,49 @@ class Scene(private val window: GameWindow) {
             //    minusZ = secoundMesh.getWorldPosition().z - pillarHitbox[1]
             //    plusZ = secoundMesh.getWorldPosition().z + pillarHitbox[1]
             //}
+
+//            if (x == secoundMesh && count in 123..456) {
+//                minusX = secoundMesh.getWorldPosition().x - arrowsHitbox[0]
+//                plusX = secoundMesh.getWorldPosition().x + arrowsHitbox[0]
+//                minusZ = secoundMesh.getWorldPosition().z - arrowsHitbox[1]
+//                plusZ = secoundMesh.getWorldPosition().z + arrowsHitbox[1]
+//            }
+//
+//            if (x == secoundMesh && count in 123..456) {
+//                minusX = secoundMesh.getWorldPosition().x - laddersHitbox[0]
+//                plusX = secoundMesh.getWorldPosition().x + laddersHitbox[0]
+//                minusZ = secoundMesh.getWorldPosition().z - laddersHitbox[1]
+//                plusZ = secoundMesh.getWorldPosition().z + laddersHitbox[1]
+//            }
+//
+//            if (x == secoundMesh && count in 123..456) {
+//                minusX = secoundMesh.getWorldPosition().x - lanternsHitbox[0]
+//                plusX = secoundMesh.getWorldPosition().x + lanternsHitbox[0]
+//                minusZ = secoundMesh.getWorldPosition().z - lanternsHitbox[1]
+//                plusZ = secoundMesh.getWorldPosition().z + lanternsHitbox[1]
+//            }
+//
+//            if (x == secoundMesh && count in 123..456) {
+//                minusX = secoundMesh.getWorldPosition().x - ninjaHitbox[0]
+//                plusX = secoundMesh.getWorldPosition().x + ninjaHitbox[0]
+//                minusZ = secoundMesh.getWorldPosition().z - ninjaHitbox[1]
+//                plusZ = secoundMesh.getWorldPosition().z + ninjaHitbox[1]
+//            }
+//
+//            if (x == secoundMesh && count in 123..456) {
+//                minusX = secoundMesh.getWorldPosition().x - ghostHitbox[0]
+//                plusX = secoundMesh.getWorldPosition().x + ghostHitbox[0]
+//                minusZ = secoundMesh.getWorldPosition().z - ghostHitbox[1]
+//                plusZ = secoundMesh.getWorldPosition().z + ghostHitbox[1]
+//            }
+//            if (x == secoundMesh && count in 123..456) {
+//                minusX = secoundMesh.getWorldPosition().x - monsterHitbox[0]
+//                plusX = secoundMesh.getWorldPosition().x + monsterHitbox[0]
+//                minusZ = secoundMesh.getWorldPosition().z - monsterHitbox[1]
+//                plusZ = secoundMesh.getWorldPosition().z + monsterHitbox[1]
+//            }
+
+
             /** Button */
             if (x == secoundMesh && count in 468..470) {
 
@@ -913,7 +1019,7 @@ class Scene(private val window: GameWindow) {
         oldMousePosY = ypos
 
         /** Camera 1 */
-        if(notFirstFrame && cameracheck1) {
+        if(notFirstFrame) {
             /** links-rechts */
             player.rotateLocal(0f, toRadians(deltaX.toFloat() * -0.05f), 0f)
             /** hoch-runter */
@@ -928,14 +1034,7 @@ class Scene(private val window: GameWindow) {
         }
         notFirstFrame = true
 
-        /** Camera 4 */
-        if(notFirstFrame && cameracheck4) {
-            /** links-rechts */
-            camera.rotateAroundPoint(0f, toRadians(deltaX.toFloat() * -0.03f), 0f, Vector3f(0f))
-            /** hoch-runter */
-            camera.rotateLocal(Math.toRadians(deltaY.toFloat() * -0.05f), 0f, 0f)
-        }
-        notFirstFrame = true
+
 
     }
 

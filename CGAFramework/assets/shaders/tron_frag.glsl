@@ -28,13 +28,27 @@ uniform vec3 spotLightAttParam;
 uniform vec3 spotLightDir;
 uniform vec3 farbe;
 
+
+// Blinn-Phong
 vec3 shade(vec3 n, vec3 l, vec3 v, vec3 dif, vec3 spec, float shine) {
     vec3 diffuse = dif * max(0.0, dot(n, l));
     vec3 reflectDir = reflect(-l, n);
     float cosb = max(0.0, dot(v, reflectDir));
-    vec3 speculr = spec * pow(cosb, shine);
-
+    vec3 halwayDir = normalize(spotLightDir+vertexData.toCamera);
+    float speculr = pow(max(dot(farbe, halwayDir), 0.0), shininess);
+    //vec3 speculr = spec * pow(cosb, shine);
     return diffuse + speculr;
+}
+
+    vec3 shade2(vec3 n, vec3 l, vec3 v, vec3 dif, vec3 spec, float shine) {
+        vec3 diffuse = dif * max(0.0, dot(n, l));
+        vec3 reflectDir = reflect(-l, n);
+        float cosb = max(0.0, dot(v, reflectDir));
+        //vec3 halwayDir = normalize(spotLightDir+vertexData.toCamera);
+        //float speculr = pow(max(dot(farbe, halwayDir), 0.0), shininess);
+        vec3 speculr = spec * pow(cosb, shine);
+        return diffuse + speculr;
+
 }
 
 float attenuate(float len, vec3 attParam) {
@@ -72,11 +86,11 @@ void main() {
 
     //Pointlight
     result += shade(n, lp, v, diffCol, specularCol, shininess) *
-        pointLightIntensity(pointLightColor, lpLength, pointLightAttParam);
+    pointLightIntensity(pointLightColor, lpLength, pointLightAttParam);
 
     //Spotlight
     result += shade(n, sp, v, diffCol, specularCol, shininess) *
-        spotLightIntensity(spotLightColor, spLength, sp, spotLightDir, spotLightAttParam);
+    spotLightIntensity(spotLightColor, spLength, sp, spotLightDir, spotLightAttParam);
 
     color = vec4(result, 1.0);
 
