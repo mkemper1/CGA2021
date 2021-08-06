@@ -30,6 +30,13 @@ class Scene(private val window: GameWindow) {
     private val buttonBases = mutableListOf<Renderable>()
     private val gateDoors = mutableListOf<Renderable>()
 
+    private val buttonStatus = mutableListOf<Boolean>(false, false, false)
+    private val buttonPressed = mutableListOf(0, 0, 0)
+
+    /** 0 = Horizontal, 1 = Vertikal */
+    var buttonOrientation : Int = 0
+    var gateOrientation : Int = 0
+
     private val checkList = mutableListOf<Boolean>()
 
     /** Renderables */
@@ -50,11 +57,11 @@ class Scene(private val window: GameWindow) {
     val wallVerticalHitbox = mutableListOf( 0.5f, 4.0f )
     val wallHorizontalHitbox = mutableListOf( 4f, 0.5f )
     val pillarHitbox = mutableListOf( 1f, 1f )
-    val buttonHorizontalHitbox = mutableListOf( 0.2f, 2f )
-    val buttonVerticalHitbox = mutableListOf( 2f, 0.2f )
-    val doorHitbox = mutableListOf( 1.5f, 0.3f )
+    val buttonHitbox = mutableListOf( 0.5f, 0.5f )
+    val gateDoorHorizontalHitbox = mutableListOf( 1.5f, 0.3f )
+    val gateDoorVerticalHitbox = mutableListOf( 0.3f, 1.5f )
 
-    var buttonPressed = false
+    var buttonObject: Int = 0
 
     /** Var´s */
     val pointLight : PointLight
@@ -68,10 +75,8 @@ class Scene(private val window: GameWindow) {
     var cameracheck4 = false
 
     val rnd = (1..4).random()
-    var doorDespawn = 0
+    var wallDespawn = 0
     var skip = false
-    var buttonVert = false
-    var buttonHor = false
     lateinit var firstButtonFP: Vector3f
     lateinit var secoundButtonFP: Vector3f
     lateinit var thirdButtonFP: Vector3f
@@ -182,8 +187,9 @@ class Scene(private val window: GameWindow) {
         moveablewall.translateLocal(Vector3f(8f, 0.0f, 8.0f))
 
         /** CubeObject */
-        cubeObject.translateGlobal(Vector3f(0.0f, -8.0f, -6.0f))
-        cubeObject.rotateLocal(0.0f, toRadians(180f), 0.0f)
+        //cubeObject.translateGlobal(Vector3f(0.0f, -8.0f, -6.0f))
+        // cubeObject.translateGlobal(Vector3f(0.0f, 0.0f, 0.0f))
+        // cubeObject.rotateLocal(0.0f, toRadians(180f), 0.0f)
 
         floor.scaleLocal(Vector3f(0.5f))
         floor.translateGlobal(Vector3f(60f, 0f, 60f))
@@ -335,7 +341,7 @@ class Scene(private val window: GameWindow) {
 
             window.getKeyState(GLFW_KEY_D) -> {
 
-                if(window.getKeyState(GLFW_KEY_S)) {
+                if (window.getKeyState(GLFW_KEY_S)) {
                     while (x < objList.size) {
                         collision(moveablewall, objList[x])
                         collision(moveablewall, objList[x])
@@ -343,8 +349,7 @@ class Scene(private val window: GameWindow) {
                     }
                     moveablewall.translateLocal(Vector3f(0.2f, 0.0f, 0.2f))
 
-                }
-                else if(window.getKeyState(GLFW_KEY_W)) {
+                } else if (window.getKeyState(GLFW_KEY_W)) {
                     while (x < objList.size) {
                         collision(moveablewall, objList[x])
                         collision(moveablewall, objList[x])
@@ -352,8 +357,7 @@ class Scene(private val window: GameWindow) {
                     }
                     moveablewall.translateLocal(Vector3f(0.2f, 0.0f, -0.2f))
 
-                }
-                else {
+                } else {
                     while (x < objList.size) {
                         collision(moveablewall, objList[x])
                         x++
@@ -385,7 +389,7 @@ class Scene(private val window: GameWindow) {
 
             window.getKeyState(GLFW_KEY_A) -> {
 
-                if(window.getKeyState(GLFW_KEY_S)) {
+                if (window.getKeyState(GLFW_KEY_S)) {
                     while (x < objList.size) {
                         collision(moveablewall, objList[x])
                         collision(moveablewall, objList[x])
@@ -393,16 +397,14 @@ class Scene(private val window: GameWindow) {
                     }
                     moveablewall.translateLocal(Vector3f(-0.2f, 0.0f, 0.2f))
 
-                }
-                else if (window.getKeyState(GLFW_KEY_W)) {
+                } else if (window.getKeyState(GLFW_KEY_W)) {
                     while (x < objList.size) {
                         collision(moveablewall, objList[x])
                         collision(moveablewall, objList[x])
                         x++
                     }
                     moveablewall.translateLocal(Vector3f(-0.2f, 0.0f, -0.2f))
-                }
-                else {
+                } else {
                     while (x < objList.size) {
                         collision(moveablewall, objList[x])
                         x++
@@ -447,30 +449,104 @@ class Scene(private val window: GameWindow) {
             }
 
         }
+
         when {
-            buttonPressed -> {
-                if (objList[463].getWorldPosition().x > gateDoorLO.x || objList[464].getWorldPosition().x < gateDoorRO.x) {
+            buttonPressed[0] == 1 || buttonPressed[1] == 1 || buttonPressed[2] == 1 -> {
+
+                if (buttonPressed[0] == 1) {
+                    if (buttonOrientation == 0 && objList[456].getWorldPosition().z > firstButtonBP.z) {
+                        objList[456].translateGlobal(Vector3f(0f, 0.0f, -0.01f))
+                    } else if (buttonOrientation == 1 && objList[456].getWorldPosition().x > firstButtonBP.x) {
+                        objList[456].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
+                    } else {
+                        buttonStatus[0] = !buttonStatus[0]
+                        println(buttonStatus[0])
+                        buttonPressed[0] = -1
+                    }
+                }
+                if (buttonPressed[1] == 1) {
+                    if (buttonOrientation == 0 && objList[457].getWorldPosition().z > secoundButtonBP.z) {
+                        objList[457].translateGlobal(Vector3f(0f, 0.0f, -0.01f))
+                    } else if (buttonOrientation == 1 && objList[457].getWorldPosition().x > secoundButtonBP.x) {
+                        objList[457].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
+                    } else {
+                        buttonStatus[1] = !buttonStatus[1]
+                        println(buttonStatus[1])
+                        buttonPressed[1] = -1
+                    }
+                }
+                if (buttonPressed[2] == 1) {
+                    if (buttonOrientation == 0 && objList[458].getWorldPosition().z > thirdButtonBP.z) {
+                        objList[458].translateGlobal(Vector3f(0f, 0.0f, -0.01f))
+                    } else if (buttonOrientation == 1 && objList[458].getWorldPosition().x > thirdButtonBP.x) {
+                        objList[458].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
+                    } else {
+                        buttonStatus[2] = !buttonStatus[2]
+                        println(buttonStatus[2])
+                        buttonPressed[2] = -1
+                    }
+                }
+            }
+            buttonPressed[0] == -1 || buttonPressed[1] == -1 || buttonPressed[2] == -1 -> {
+                if (buttonPressed[0] == -1) {
+                    if (buttonOrientation == 0 && objList[456].getWorldPosition().z < firstButtonFP.z) {
+                        objList[456].translateGlobal(Vector3f(0.0f, 0.0f, 0.01f))
+                    } else if (buttonOrientation == 1 && objList[456].getWorldPosition().x < firstButtonFP.x) {
+                        objList[456].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
+                    } else {
+                        buttonPressed[0] = 0
+                    }
+                }
+                if (buttonPressed[1] == -1) {
+                    if (buttonOrientation == 0 && objList[457].getWorldPosition().z < secoundButtonFP.z) {
+                        objList[457].translateGlobal(Vector3f(0.0f, 0.0f, 0.01f))
+                    } else if (buttonOrientation == 1 && objList[457].getWorldPosition().x < secoundButtonFP.x) {
+                        objList[457].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
+                    } else {
+                        buttonPressed[1] = 0
+                    }
+                }
+                if (buttonPressed[2] == -1) {
+                    if (buttonOrientation == 0 && objList[458].getWorldPosition().z < thirdButtonFP.z) {
+                        objList[458].translateGlobal(Vector3f(0.0f, 0.0f, 0.01f))
+                    } else if (buttonOrientation == 1 && objList[458].getWorldPosition().x < thirdButtonFP.x) {
+                        objList[458].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
+                    } else {
+                        buttonPressed[2] = 0
+                    }
+                }
+
+            }
+        }
+
+        when {
+            buttonStatus[0] && buttonStatus[1] && buttonStatus[2] -> {
+                if (gateOrientation == 0 && (objList[463].getWorldPosition().x > gateDoorLO.x || objList[464].getWorldPosition().x < gateDoorRO.x)) {
                     objList[463].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
                     objList[464].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
+                    camera.parent = cubeObject
+                } else if (gateOrientation == 1 && (objList[463].getWorldPosition().z > gateDoorLO.z || objList[464].getWorldPosition().z < gateDoorRO.z)) {
+                    objList[463].translateGlobal(Vector3f(0.0f, 0.0f, -0.01f))
+                    objList[464].translateGlobal(Vector3f(0.0f, 0.0f, 0.01f))
                     camera.parent = cubeObject
                 } else {
                     camera.parent = moveablewall
                 }
-                if (objList[456].getWorldPosition().x > firstButtonBP.x) {
-                    objList[456].translateGlobal(Vector3f(-0.0f, 0.0f, 0.0f))
-                }
             }
-            !buttonPressed -> {
-                if (objList[463].getWorldPosition().x < gateDoorLC.x || objList[464].getWorldPosition().x < gateDoorRC.x) {
+            !buttonStatus[0] && !buttonStatus[1] && !buttonStatus[2] -> {
+                if (gateOrientation == 0 && (objList[463].getWorldPosition().x < gateDoorLC.x || objList[464].getWorldPosition().x > gateDoorRC.x)) {
                     objList[463].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
                     objList[464].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
-                }
-                if (objList[456].getWorldPosition().x < firstButtonFP.x) {
-                    objList[456].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
+                    camera.parent = cubeObject
+                } else if (gateOrientation == 1 && (objList[463].getWorldPosition().z < gateDoorLC.z || objList[464].getWorldPosition().z < gateDoorRC.z)) {
+                    objList[463].translateGlobal(Vector3f(0.0f, 0.0f, 0.01f))
+                    objList[464].translateGlobal(Vector3f(0.0f, 0.0f, -0.01f))
+                    camera.parent = cubeObject
+                } else {
+                    camera.parent = moveablewall
                 }
             }
         }
-
     }
 
     fun collision(firstMesh: Renderable, secoundMesh: Renderable) {
@@ -510,20 +586,12 @@ class Scene(private val window: GameWindow) {
             //    plusZ = secoundMesh.getWorldPosition().z + pillarHitbox[1]
             //}
             /** Button */
-            if (x == secoundMesh && count in 468..470) {
+            if (x == secoundMesh && count in 456..458) {
 
-                if (buttonVert) {
-                    minusX = secoundMesh.getWorldPosition().x - buttonVerticalHitbox[0]
-                    plusX = secoundMesh.getWorldPosition().x + buttonVerticalHitbox[0]
-                    minusZ = secoundMesh.getWorldPosition().z - buttonVerticalHitbox[1]
-                    plusZ = secoundMesh.getWorldPosition().z + buttonVerticalHitbox[1]
-                }
-                if (buttonHor) {
-                    minusX = secoundMesh.getWorldPosition().x - buttonHorizontalHitbox[0]
-                    plusX = secoundMesh.getWorldPosition().x + buttonHorizontalHitbox[0]
-                    minusZ = secoundMesh.getWorldPosition().z - buttonHorizontalHitbox[1]
-                    plusZ = secoundMesh.getWorldPosition().z + buttonHorizontalHitbox[1]
-                }
+                minusX = secoundMesh.getWorldPosition().x - buttonHitbox[0]
+                plusX = secoundMesh.getWorldPosition().x + buttonHitbox[0]
+                minusZ = secoundMesh.getWorldPosition().z - buttonHitbox[1]
+                plusZ = secoundMesh.getWorldPosition().z + buttonHitbox[1]
 
             }
             /** Gate */
@@ -532,10 +600,17 @@ class Scene(private val window: GameWindow) {
             }
             /** Linkes und rechtes Tor */
             if (x == secoundMesh && count in 463..464) {
-                minusX = secoundMesh.getWorldPosition().x - doorHitbox[0]
-                plusX = secoundMesh.getWorldPosition().x + doorHitbox[0]
-                minusZ = secoundMesh.getWorldPosition().z - doorHitbox[1]
-                plusZ = secoundMesh.getWorldPosition().z + doorHitbox[1]
+                if (gateOrientation == 0) {
+                    minusX = secoundMesh.getWorldPosition().x - gateDoorHorizontalHitbox[0]
+                    plusX = secoundMesh.getWorldPosition().x + gateDoorHorizontalHitbox[0]
+                    minusZ = secoundMesh.getWorldPosition().z - gateDoorHorizontalHitbox[1]
+                    plusZ = secoundMesh.getWorldPosition().z + gateDoorHorizontalHitbox[1]
+                } else {
+                    minusX = secoundMesh.getWorldPosition().x - gateDoorVerticalHitbox[0]
+                    plusX = secoundMesh.getWorldPosition().x + gateDoorVerticalHitbox[0]
+                    minusZ = secoundMesh.getWorldPosition().z - gateDoorVerticalHitbox[1]
+                    plusZ = secoundMesh.getWorldPosition().z + gateDoorVerticalHitbox[1]
+                }
             }
             count++
         }
@@ -573,47 +648,42 @@ class Scene(private val window: GameWindow) {
 
     fun buttonPressRange(firstMesh: Renderable, secoundMesh: Renderable): Boolean {
 
-        val h: Boolean
-        val t: Boolean
-        var bool = true
+        val f: Boolean
+        val g: Boolean
+        var bool = false
 
-        var turn = true
 
-        when {
+            if(buttonOrientation == 0) {
 
-            !turn -> {
+                val minusX = secoundMesh.getWorldPosition().x - buttonHitbox[0]
+                val plusX = secoundMesh.getWorldPosition().x + buttonHitbox[0]
+                val plusZ = secoundMesh.getWorldPosition().z + 2
 
-                val minusX: Float = secoundMesh.getWorldPosition().x - buttonHorizontalHitbox[0]
-                val plusX: Float = secoundMesh.getWorldPosition().x + buttonHorizontalHitbox[0]
-                val minusZ: Float = secoundMesh.getWorldPosition().z - 2
-
-                h = !(firstMesh.getWorldPosition().z + 1 > minusZ && firstMesh.getWorldPosition().z - 1 < minusZ)
+                f = !(firstMesh.getWorldPosition().z - 1 < plusZ && firstMesh.getWorldPosition().z + 1 > plusZ)
                         || firstMesh.getWorldPosition().x - 0.8 > plusX
                         || firstMesh.getWorldPosition().x + 0.8 < minusX
 
-                if (!h) {
-                    bool = false
+                if (!f) {
+                    bool = true
                 }
 
             }
 
-            turn -> {
+            if(buttonOrientation == 1) {
 
-                val minusX: Float = secoundMesh.getWorldPosition().x - buttonHorizontalHitbox[0]
-                val plusZ: Float = secoundMesh.getWorldPosition().z + buttonHorizontalHitbox[0]
-                val minusZ: Float = secoundMesh.getWorldPosition().z - 2
+                val plusX: Float = secoundMesh.getWorldPosition().x + 2
+                val plusZ: Float = secoundMesh.getWorldPosition().z + buttonHitbox[1]
+                val minusZ: Float = secoundMesh.getWorldPosition().z - buttonHitbox[1]
 
-                t = !(firstMesh.getWorldPosition().x + 1 > minusX && firstMesh.getWorldPosition().x - 1 < minusX)
+                g = !(firstMesh.getWorldPosition().x - 1 < plusX && firstMesh.getWorldPosition().x + 1 > plusX)
                         || firstMesh.getWorldPosition().z - 0.8 > plusZ
                         || firstMesh.getWorldPosition().z + 0.8 < minusZ
 
-                if (!t) {
-                    bool = false
+                if (!g) {
+                    bool = true
                 }
 
             }
-
-        }
 
         return bool
 
@@ -622,94 +692,71 @@ class Scene(private val window: GameWindow) {
     fun rndButtonSpawn() {
         when(rnd) {
             1 -> {
+                buttons[0].translateGlobal(Vector3f(84f, 0f, 9f))
+                buttonBases[0].translateGlobal(Vector3f(84f, 0f, 9f))
 
-                buttonVert = true
+                buttons[1].translateGlobal(Vector3f(116f, 0f, 65f))
+                buttonBases[1].translateGlobal(Vector3f(116f, 0f, 65f))
 
-                buttons[0].rotateLocal(0f, toRadians(90f), 0f)
-                buttons[0].translateGlobal(Vector3f(1f, 0f, 4f))
-                buttonBases[0].rotateLocal(0f, toRadians(90f), 0f)
-                buttonBases[0].translateGlobal(Vector3f(1f, 0f, 4f))
-
-                buttons[1].rotateLocal(0f, toRadians(90f), 0f)
-                buttons[1].translateGlobal(Vector3f(1f, 0f, 12f))
-                buttonBases[1].rotateLocal(0f, toRadians(90f), 0f)
-                buttonBases[1].translateGlobal(Vector3f(1f, 0f, 12f))
-
-                buttons[2].rotateLocal(0f, toRadians(900f), 0f)
-                buttons[2].translateGlobal(Vector3f(1f, 0f, 20f))
-                buttonBases[2].rotateLocal(0f, toRadians(90f), 0f)
-                buttonBases[2].translateGlobal(Vector3f(1f, 0f, 20f))
+                buttons[2].translateGlobal(Vector3f(4f, 0f, 89f))
+                buttonBases[2].translateGlobal(Vector3f(4f, 0f, 89f))
 
                 firstButtonFP = buttons[0].getWorldPosition()
                 secoundButtonFP = buttons[1].getWorldPosition()
                 thirdButtonFP = buttons[2].getWorldPosition()
-                buttons[0].translateGlobal(Vector3f(-0.2f, 0f, 0f))
-                buttons[1].translateGlobal(Vector3f(-0.2f, 0f, 0f))
-                buttons[2].translateGlobal(Vector3f(-0.2f, 0f, 0f))
+                buttons[0].translateGlobal(Vector3f(0f, 0f, -0.2f))
+                buttons[1].translateGlobal(Vector3f(0f, 0f, -0.2f))
+                buttons[2].translateGlobal(Vector3f(0f, 0f, -0.2f))
                 firstButtonBP = buttons[0].getWorldPosition()
                 secoundButtonBP = buttons[1].getWorldPosition()
                 thirdButtonBP = buttons[2].getWorldPosition()
-                buttons[0].translateGlobal(Vector3f(0.2f, 0f, 0f))
-                buttons[1].translateGlobal(Vector3f(0.2f, 0f, 0f))
-                buttons[2].translateGlobal(Vector3f(0.2f, 0f, 0f))
+                buttons[0].translateGlobal(Vector3f(0f, 0f, 0.2f))
+                buttons[1].translateGlobal(Vector3f(0f, 0f, 0.2f))
+                buttons[2].translateGlobal(Vector3f(0f, 0f, 0.2f))
             }
             2 -> {
 
-                buttonVert = true
+                buttons[0].translateGlobal(Vector3f(20f, 0f, 41f))
+                buttonBases[0].translateGlobal(Vector3f(20f, 0f, 41f))
 
-                buttons[0].rotateLocal(0f, toRadians(90f), 0f)
-                buttons[0].translateGlobal(Vector3f(1f, 0f, 4f))
-                buttonBases[0].rotateLocal(0f, toRadians(90f), 0f)
-                buttonBases[0].translateGlobal(Vector3f(1f, 0f, 4f))
+                buttons[1].translateGlobal(Vector3f(4f, 0f, 89f))
+                buttonBases[1].translateGlobal(Vector3f(4f, 0f, 89f))
 
-                buttons[1].rotateLocal(0f, toRadians(90f), 0f)
-                buttons[1].translateGlobal(Vector3f(1f, 0f, 12f))
-                buttonBases[1].rotateLocal(0f, toRadians(90f), 0f)
-                buttonBases[1].translateGlobal(Vector3f(1f, 0f, 12f))
-
-                buttons[2].rotateLocal(0f, toRadians(90f), 0f)
-                buttons[2].translateGlobal(Vector3f(1f, 0f, 20f))
-                buttonBases[2].rotateLocal(0f, toRadians(90f), 0f)
-                buttonBases[2].translateGlobal(Vector3f(1f, 0f, 20f))
+                buttons[2].translateGlobal(Vector3f(68f, 0f, 97f))
+                buttonBases[2].translateGlobal(Vector3f(68f, 0f, 97f))
 
                 firstButtonFP = buttons[0].getWorldPosition()
                 secoundButtonFP = buttons[1].getWorldPosition()
                 thirdButtonFP = buttons[2].getWorldPosition()
-                buttons[0].translateGlobal(Vector3f(-0.2f, 0f, 0f))
-                buttons[1].translateGlobal(Vector3f(-0.2f, 0f, 0f))
-                buttons[2].translateGlobal(Vector3f(-0.2f, 0f, 0f))
+                buttons[0].translateGlobal(Vector3f(0f, 0f, -0.2f))
+                buttons[1].translateGlobal(Vector3f(0f, 0f, -0.2f))
+                buttons[2].translateGlobal(Vector3f(0f, 0f, -0.2f))
                 firstButtonBP = buttons[0].getWorldPosition()
                 secoundButtonBP = buttons[1].getWorldPosition()
                 thirdButtonBP = buttons[2].getWorldPosition()
-                buttons[0].translateGlobal(Vector3f(0.2f, 0f, 0f))
-                buttons[1].translateGlobal(Vector3f(0.2f, 0f, 0f))
-                buttons[2].translateGlobal(Vector3f(0.2f, 0f, 0f))
+                buttons[0].translateGlobal(Vector3f(0f, 0f, 0.2f))
+                buttons[1].translateGlobal(Vector3f(0f, 0f, 0.2f))
+                buttons[2].translateGlobal(Vector3f(0f, 0f, 0.2f))
 
-                // buttonBase.translateGlobal(Vector3f(-15.0f, -2f, -1.0f))
-                // buttonBase.rotateLocal(0.0f, toRadians(90f), 0f)
-                // buttonFrontPosition = buttonBase.getWorldPosition()
-                // buttonBase.translateGlobal((Vector3f(0.0f, 0.0f, 0.2f)))
-                // buttonBackPosition = buttonBase.getWorldPosition()
-                // buttonBase.translateGlobal((Vector3f(0.0f, 0.0f, -0.2f)))
             }
             3 -> {
 
-                buttonVert = true
+                buttonOrientation = 1
 
                 buttons[0].rotateLocal(0f, toRadians(90f), 0f)
-                buttons[0].translateGlobal(Vector3f(1f, 0f, 4f))
+                buttons[0].translateGlobal(Vector3f(61f, 0f, 4f))
                 buttonBases[0].rotateLocal(0f, toRadians(90f), 0f)
-                buttonBases[0].translateGlobal(Vector3f(1f, 0f, 4f))
+                buttonBases[0].translateGlobal(Vector3f(61f, 0f, 4f))
 
                 buttons[1].rotateLocal(0f, toRadians(90f), 0f)
-                buttons[1].translateGlobal(Vector3f(1f, 0f, 12f))
+                buttons[1].translateGlobal(Vector3f(17f, 0f, 28f))
                 buttonBases[1].rotateLocal(0f, toRadians(90f), 0f)
-                buttonBases[1].translateGlobal(Vector3f(1f, 0f, 12f))
+                buttonBases[1].translateGlobal(Vector3f(17f, 0f, 28f))
 
                 buttons[2].rotateLocal(0f, toRadians(90f), 0f)
-                buttons[2].translateGlobal(Vector3f(1f, 0f, 20f))
+                buttons[2].translateGlobal(Vector3f(76f, 0f, 9f))
                 buttonBases[2].rotateLocal(0f, toRadians(90f), 0f)
-                buttonBases[2].translateGlobal(Vector3f(1f, 0f, 20f))
+                buttonBases[2].translateGlobal(Vector3f(76f, 0f, 9f))
 
                 firstButtonFP = buttons[0].getWorldPosition()
                 secoundButtonFP = buttons[1].getWorldPosition()
@@ -724,31 +771,25 @@ class Scene(private val window: GameWindow) {
                 buttons[1].translateGlobal(Vector3f(0.2f, 0f, 0f))
                 buttons[2].translateGlobal(Vector3f(0.2f, 0f, 0f))
 
-                // buttonBase.translateGlobal(Vector3f(-20.0f, -2f, -1.0f))
-                // buttonBase.rotateLocal(0.0f, toRadians(90f), 0f)
-                // buttonFrontPosition = buttonBase.getWorldPosition()
-                // buttonBase.translateGlobal((Vector3f(0.0f, 0.0f, 0.2f)))
-                // buttonBackPosition = buttonBase.getWorldPosition()
-                // buttonBase.translateGlobal((Vector3f(0.0f, 0.0f, -0.2f)))
             }
             4 -> {
 
-                buttonVert = true
+                buttonOrientation = 1
 
                 buttons[0].rotateLocal(0f, toRadians(90f), 0f)
-                buttons[0].translateGlobal(Vector3f(1f, 0f, 4f))
+                buttons[0].translateGlobal(Vector3f(97f, 0f, 12f))
                 buttonBases[0].rotateLocal(0f, toRadians(90f), 0f)
-                buttonBases[0].translateGlobal(Vector3f(1f, 0f, 4f))
+                buttonBases[0].translateGlobal(Vector3f(97f, 0f, 12f))
 
                 buttons[1].rotateLocal(0f, toRadians(90f), 0f)
-                buttons[1].translateGlobal(Vector3f(1f, 0f, 12f))
+                buttons[1].translateGlobal(Vector3f(108f, 0f, 49f))
                 buttonBases[1].rotateLocal(0f, toRadians(90f), 0f)
-                buttonBases[1].translateGlobal(Vector3f(1f, 0f, 12f))
+                buttonBases[1].translateGlobal(Vector3f(108f, 0f, 49f))
 
                 buttons[2].rotateLocal(0f, toRadians(90f), 0f)
-                buttons[2].translateGlobal(Vector3f(1f, 0f, 20f))
+                buttons[2].translateGlobal(Vector3f(116f, 0f, 105f))
                 buttonBases[2].rotateLocal(0f, toRadians(90f), 0f)
-                buttonBases[2].translateGlobal(Vector3f(1f, 0f, 20f))
+                buttonBases[2].translateGlobal(Vector3f(116f, 0f, 105f))
 
                 firstButtonFP = buttons[0].getWorldPosition()
                 secoundButtonFP = buttons[1].getWorldPosition()
@@ -770,79 +811,98 @@ class Scene(private val window: GameWindow) {
     fun rndDoorSpawn() {
         when(rnd) {
             1 -> {
-                doorDespawn = 7
+                wallDespawn = 7
 
                 gate.translateGlobal(Vector3f(60f, 0f, 0f))
+                cubeObject.rotateLocal(toRadians(-15f), 0f, 0f)
+                cubeObject.translateGlobal(Vector3f(60f, -4f, 10f))
 
                 gateDoors[0].translateGlobal(Vector3f(58f, 0f, 0f))
-                gateDoorLC = gateDoors[0].getWorldPosition()
                 gateDoors[1].translateGlobal(Vector3f(62f, 0f, 0f))
-                gateDoorRC = gateDoors[1].getWorldPosition()
 
+                gateDoorLC = gateDoors[0].getWorldPosition()
+                gateDoorRC = gateDoors[1].getWorldPosition()
                 gateDoors[0].translateGlobal(Vector3f(-2f, 0f, 0f))
-                gateDoorLO = gateDoors[0].getWorldPosition()
                 gateDoors[1].translateGlobal(Vector3f(2f, 0f, 0f))
+                gateDoorLO = gateDoors[0].getWorldPosition()
                 gateDoorRO = gateDoors[1].getWorldPosition()
+                gateDoors[0].translateGlobal(Vector3f(2f, 0f, 0f))
+                gateDoors[1].translateGlobal(Vector3f(-2f, 0f, 0f))
             }
             2 -> {
-                doorDespawn = 7
+                wallDespawn = 22
 
-                gate.translateGlobal(Vector3f(60f, 0f, 0f))
+                gate.translateGlobal(Vector3f(60f, 0f, 120f))
+                cubeObject.rotateLocal(0f, toRadians(180f), 0f)
+                cubeObject.rotateLocal(toRadians(-15f), 0f, 0f)
+                cubeObject.translateGlobal(Vector3f(60f, -4f, 106f))
 
-                gateDoors[0].translateGlobal(Vector3f(58f, 0f, 0f))
+                gateDoors[0].translateGlobal(Vector3f(58f, 0f, 120f))
+                gateDoors[1].translateGlobal(Vector3f(62f, 0f, 120f))
+
                 gateDoorLC = gateDoors[0].getWorldPosition()
-                gateDoors[1].translateGlobal(Vector3f(62f, 0f, 0f))
                 gateDoorRC = gateDoors[1].getWorldPosition()
-
                 gateDoors[0].translateGlobal(Vector3f(-2f, 0f, 0f))
-                gateDoorLO = gateDoors[0].getWorldPosition()
                 gateDoors[1].translateGlobal(Vector3f(2f, 0f, 0f))
+                gateDoorLO = gateDoors[0].getWorldPosition()
                 gateDoorRO = gateDoors[1].getWorldPosition()
-
-                //gate.translateGlobal(Vector3f(60f, 0f, 120f))
-                //doorDespawn = 22
+                gateDoors[0].translateGlobal(Vector3f(2f, 0f, 0f))
+                gateDoors[1].translateGlobal(Vector3f(-2f, 0f, 0f))
 
             }
             3 -> {
 
-                doorDespawn = 7
+                gateOrientation = 1
 
-                gate.translateGlobal(Vector3f(60f, 0f, 0f))
+                wallDespawn = 37
 
-                gateDoors[0].translateGlobal(Vector3f(58f, 0f, 0f))
+                gate.rotateLocal(0f, toRadians(90f), 0f)
+                gate.translateGlobal(Vector3f(0f, 0f, 60f))
+                cubeObject.rotateLocal(0f, toRadians(90f), 0f)
+                cubeObject.rotateLocal(toRadians(-15f), 0f, 0f)
+                cubeObject.translateGlobal(Vector3f(10f, -4f, 60f))
+
+                gateDoors[0].rotateLocal(0f, toRadians(90f), 0f)
+                gateDoors[0].translateGlobal(Vector3f(0f, 0f, 58f))
+                gateDoors[1].rotateLocal(0f, toRadians(90f), 0f)
+                gateDoors[1].translateGlobal(Vector3f(0f, 0f, 62f))
+
                 gateDoorLC = gateDoors[0].getWorldPosition()
-                gateDoors[1].translateGlobal(Vector3f(62f, 0f, 0f))
                 gateDoorRC = gateDoors[1].getWorldPosition()
-
-                gateDoors[0].translateGlobal(Vector3f(-2f, 0f, 0f))
+                gateDoors[0].translateGlobal(Vector3f(0f, 0f, -2f))
+                gateDoors[1].translateGlobal(Vector3f(0f, 0f, 2f))
                 gateDoorLO = gateDoors[0].getWorldPosition()
-                gateDoors[1].translateGlobal(Vector3f(2f, 0f, 0f))
                 gateDoorRO = gateDoors[1].getWorldPosition()
-
-                //gate.translateGlobal(Vector3f(0f, 0f, 60f))
-                //gate.rotateLocal(0f, toRadians(90f), 0f)
-                //doorDespawn = 37
+                gateDoors[0].translateGlobal(Vector3f(0f, 0f, 2f))
+                gateDoors[1].translateGlobal(Vector3f(0f, 0f, -2f))
 
             }
             4 -> {
 
-                doorDespawn = 7
+                gateOrientation = 1
 
-                gate.translateGlobal(Vector3f(60f, 0f, 0f))
+                wallDespawn = 52
 
-                gateDoors[0].translateGlobal(Vector3f(58f, 0f, 0f))
+                gate.rotateLocal(0f, toRadians(90f), 0f)
+                gate.translateGlobal(Vector3f(120f, 0f, 60f))
+                cubeObject.rotateLocal(0f, toRadians(-90f), 0f)
+                cubeObject.rotateLocal(toRadians(-15f), 0f, 0f)
+                cubeObject.translateGlobal(Vector3f(106f, -4f, 60f))
+
+                gateDoors[0].rotateLocal(0f, toRadians(90f), 0f)
+                gateDoors[0].translateGlobal(Vector3f(120f, 0f, 58f))
+                gateDoors[1].rotateLocal(0f, toRadians(90f), 0f)
+                gateDoors[1].translateGlobal(Vector3f(120f, 0f, 62f))
+
                 gateDoorLC = gateDoors[0].getWorldPosition()
-                gateDoors[1].translateGlobal(Vector3f(62f, 0f, 0f))
                 gateDoorRC = gateDoors[1].getWorldPosition()
-
-                gateDoors[0].translateGlobal(Vector3f(-2f, 0f, 0f))
+                gateDoors[0].translateGlobal(Vector3f(0f, 0f, -2f))
+                gateDoors[1].translateGlobal(Vector3f(0f, 0f, 2f))
                 gateDoorLO = gateDoors[0].getWorldPosition()
-                gateDoors[1].translateGlobal(Vector3f(2f, 0f, 0f))
                 gateDoorRO = gateDoors[1].getWorldPosition()
+                gateDoors[0].translateGlobal(Vector3f(0f, 0f, 2f))
+                gateDoors[1].translateGlobal(Vector3f(0f, 0f, -2f))
 
-                //gate.translateGlobal(Vector3f(120f, 0f, 60f))
-                //gate.rotateLocal(0f, toRadians(90f), 0f)
-                //doorDespawn = 52
 
             }
         }
@@ -850,12 +910,52 @@ class Scene(private val window: GameWindow) {
 
     fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {
 
-        if(!buttonPressRange(moveablewall, objList[80])) {
+            if(buttonPressRange(moveablewall, objList[456]) && window.getKeyState(GLFW_KEY_E) && buttonPressed[0] == 0) {
+                buttonPressed[0] = 1
+            }
 
-            if(window.getKeyState(GLFW_KEY_E) && !buttonPressed) buttonPressed = true
-            else if(window.getKeyState(GLFW_KEY_E) && buttonPressed) buttonPressed = false
+            if(buttonPressRange(moveablewall, objList[457]) && window.getKeyState(GLFW_KEY_E) && buttonPressed[1] == 0) {
+                buttonPressed[1] = 1
+            }
 
-        }
+            if(buttonPressRange(moveablewall, objList[458]) && window.getKeyState(GLFW_KEY_E) && buttonPressed[2] == 0) {
+                buttonPressed[2] = 1
+            }
+
+
+
+
+
+        //if(buttonPressRange(moveablewall, objList[456])) {
+//
+        //    if(window.getKeyState(GLFW_KEY_E) && !buttonPressed[0]) {
+        //        buttonPressed[0] = true
+        //    }
+        //    else if(window.getKeyState(GLFW_KEY_E) && buttonPressed[0]) {
+        //        buttonPressed[0] = false
+        //    }
+//
+        //}
+        //if(buttonPressRange(moveablewall, objList[457])) {
+//
+        //    if(window.getKeyState(GLFW_KEY_E) && !buttonPressed[1]) {
+        //        buttonPressed[1] = true
+        //    }
+        //    else if(window.getKeyState(GLFW_KEY_E) && buttonPressed[1]) {
+        //        buttonPressed[1] = false
+        //    }
+//
+        //}
+        //if(buttonPressRange(moveablewall, objList[458])) {
+//
+        //    if(window.getKeyState(GLFW_KEY_E) && !buttonPressed[2]) {
+        //        buttonPressed[2] = true
+        //    }
+        //    else if(window.getKeyState(GLFW_KEY_E) && buttonPressed[2]) {
+        //        buttonPressed[2] = false
+        //    }
+//
+        //}
 
     }
 
@@ -903,7 +1003,7 @@ class Scene(private val window: GameWindow) {
         wallsBig[4].translateGlobal(Vector3f(36f, 0f, 0f))
         wallsBig[5].translateGlobal(Vector3f(44f, 0f, 0f))
         wallsBig[6].translateGlobal(Vector3f(52f, 0f, 0f))
-        if (doorDespawn != 7) wallsBig[7].translateGlobal(Vector3f(60f, 0f, 0f)) else wallsBig[7].translateGlobal(Vector3f(0f, -10f, 0f))
+        if (wallDespawn != 7) wallsBig[7].translateGlobal(Vector3f(60f, 0f, 0f)) else wallsBig[7].translateGlobal(Vector3f(0f, -10f, 0f))
         wallsBig[8].translateGlobal(Vector3f(68f, 0f, 0f))
         wallsBig[9].translateGlobal(Vector3f(76f, 0f, 0f))
         wallsBig[10].translateGlobal(Vector3f(84f, 0f, 0f))
@@ -1028,7 +1128,7 @@ class Scene(private val window: GameWindow) {
         wallsBig[19].translateGlobal(Vector3f(36f, 0f, 120f))
         wallsBig[20].translateGlobal(Vector3f(44f, 0f, 120f))
         wallsBig[21].translateGlobal(Vector3f(52f, 0f, 120f))
-        if (doorDespawn != 22) wallsBig[22].translateGlobal(Vector3f(60f, 0f, 120f)) else wallsBig[22].translateGlobal(Vector3f(0f, -10f, 0f))
+        if (wallDespawn != 22) wallsBig[22].translateGlobal(Vector3f(60f, 0f, 120f)) else wallsBig[22].translateGlobal(Vector3f(0f, -10f, 0f))
         wallsBig[23].translateGlobal(Vector3f(68f, 0f, 120f))
         wallsBig[24].translateGlobal(Vector3f(76f, 0f, 120f))
         wallsBig[25].translateGlobal(Vector3f(84f, 0f, 120f))
@@ -1056,7 +1156,7 @@ class Scene(private val window: GameWindow) {
         wallsBig[34].translateGlobal(Vector3f(0f, 0f, 36f))
         wallsBig[35].translateGlobal(Vector3f(0f, 0f, 44f))
         wallsBig[36].translateGlobal(Vector3f(0f, 0f, 52f))
-        if (doorDespawn != 37) wallsBig[37].translateGlobal(Vector3f(0f, 0f, 60f)) else wallsBig[37].translateGlobal(Vector3f(0f, -10f, 0f))
+        if (wallDespawn != 37) wallsBig[37].translateGlobal(Vector3f(0f, 0f, 60f)) else wallsBig[37].translateGlobal(Vector3f(0f, -10f, 0f))
         wallsBig[38].translateGlobal(Vector3f(0f, 0f, 68f))
         wallsBig[39].translateGlobal(Vector3f(0f, 0f, 76f))
         wallsBig[40].translateGlobal(Vector3f(0f, 0f, 84f))
@@ -1187,7 +1287,7 @@ class Scene(private val window: GameWindow) {
         wallsBig[49].translateGlobal(Vector3f(120f, 0f, 36f))
         wallsBig[50].translateGlobal(Vector3f(120f, 0f, 44f))
         wallsBig[51].translateGlobal(Vector3f(120f, 0f, 52f))
-        if (doorDespawn != 52) wallsBig[52].translateGlobal(Vector3f(120f, 0f, 60f)) else wallsBig[52].translateGlobal(Vector3f(0f, -10f, 0f))
+        if (wallDespawn != 52) wallsBig[52].translateGlobal(Vector3f(120f, 0f, 60f)) else wallsBig[52].translateGlobal(Vector3f(0f, -10f, 0f))
         wallsBig[53].translateGlobal(Vector3f(120f, 0f, 68f))
         wallsBig[54].translateGlobal(Vector3f(120f, 0f, 76f))
         wallsBig[55].translateGlobal(Vector3f(120f, 0f, 84f))
