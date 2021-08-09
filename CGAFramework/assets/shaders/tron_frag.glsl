@@ -36,7 +36,6 @@ vec3 shade(vec3 n, vec3 l, vec3 v, vec3 dif, vec3 spec, float shine) {
     float cosb = max(0.0, dot(v, reflectDir));
     vec3 halwayDir = normalize(spotLightDir+vertexData.toCamera);
     float speculr = pow(max(dot(farbe, halwayDir), 0.0), shininess);
-    //vec3 speculr = spec * pow(cosb, shine);
     return diffuse + speculr;
 }
 
@@ -44,8 +43,6 @@ vec3 shade(vec3 n, vec3 l, vec3 v, vec3 dif, vec3 spec, float shine) {
         vec3 diffuse = dif * max(0.0, dot(n, l));
         vec3 reflectDir = reflect(-l, n);
         float cosb = max(0.0, dot(v, reflectDir));
-        //vec3 halwayDir = normalize(spotLightDir+vertexData.toCamera);
-        //float speculr = pow(max(dot(farbe, halwayDir), 0.0), shininess);
         vec3 speculr = spec * pow(cosb, shine);
         return diffuse + speculr;
 
