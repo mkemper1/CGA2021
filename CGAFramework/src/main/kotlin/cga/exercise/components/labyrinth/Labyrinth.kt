@@ -4,9 +4,12 @@ import cga.exercise.components.camera.TronCamera
 import cga.exercise.components.geometry.Renderable
 import org.joml.Math
 import org.joml.Vector3f
+import java.util.*
+import kotlin.concurrent.schedule
+import kotlin.concurrent.scheduleAtFixedRate
 
-var step = 0
 var tap = 0
+var step = 0
 
 class Labyrinth {
 
@@ -215,6 +218,17 @@ class Labyrinth {
                     objList[474].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
                     objList[475].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
                     camera.parent = firstCameraPosition
+
+                    var count = 0
+
+
+
+                    Timer("SettingUp", false).schedule(10000) {
+                        portTo(player, objList[481], "z+")
+                        println(count)
+                        count++
+                    }
+
                     return true
                 } else if (gateOrientation == 1 && (objList[474].getWorldPosition().z > doorSpawn[2].z || objList[475].getWorldPosition().z < doorSpawn[3].z)) {
                     objList[474].translateGlobal(Vector3f(0.0f, 0.0f, -0.01f))

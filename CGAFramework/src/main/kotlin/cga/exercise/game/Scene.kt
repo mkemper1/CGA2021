@@ -13,6 +13,12 @@ import org.joml.*
 import org.joml.Math.*
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11.*
+import java.util.*
+import kotlin.concurrent.fixedRateTimer
+
+import kotlin.concurrent.schedule
+import kotlin.concurrent.scheduleAtFixedRate
+import kotlin.concurrent.timerTask
 
 
 /**
@@ -187,7 +193,6 @@ class Scene(private val window: GameWindow) {
 
         /** player */
         player = ModelLoader.loadModel("assets/Player/playerObject.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
-        camera.parent = player
         player.translateLocal(Vector3f(4f, 0.0f, 4.0f))
         player.rotateLocal(0f, toRadians(-90f), 0f)
         objList.add(player) //objList: 477
@@ -204,9 +209,10 @@ class Scene(private val window: GameWindow) {
         objList.add(floor) //objList: 479
 
         /** skyBox */
-        skyBox = ModelLoader.loadModel("assets/SkyBox/skybox.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
+        skyBox = ModelLoader.loadModel("assets/SkyBox/skyBox(night)2.obj", toRadians(0f), toRadians(180f), 0f)?: throw Exception("Renderable can't be NULL!")
         skyBox.translateGlobal(Vector3f(60f, 0f, 60f))
         skyBox.scaleLocal(Vector3f(13f))
+        skyBox.rotateLocal(0f, 0f, toRadians(90f))
         objList.add(skyBox) //objList: 480
 
         /** camera */
@@ -270,13 +276,12 @@ class Scene(private val window: GameWindow) {
 
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
         tronShader.use()
-        staticShader.use()
 
         camera.bind(tronShader)
-        spotLight.bind(staticShader, "spot", camera.getCalculateViewMatrix())
+        spotLight.bind(tronShader, "spot", camera.getCalculateViewMatrix())
         pointLight.bind(tronShader, "point")
 
-        tronShader.setUniform("farbe", Vector3f(0.08f,0.08f,0.08f))
+        tronShader.setUniform("farbe", Vector3f(0.1f,0.1f,0.1f))
 
         for (obj in objList) {
             if (obj != player && obj != spawn) obj.render(tronShader)
@@ -309,7 +314,7 @@ class Scene(private val window: GameWindow) {
             window.getKeyState(GLFW_KEY_W) && !window.getKeyState(GLFW_KEY_D) && !window.getKeyState(GLFW_KEY_A) -> {
                 sprint()
                 for (obj in objList) {
-                    run.collision(player, obj, allHitboxes, "solid", objList, gateOrientation, playerSpeed)
+                    //run.collision(player, obj, allHitboxes, "solid", objList, gateOrientation, playerSpeed)
                 }
                 player.translateLocal(Vector3f(0.0f, 0.0f, -playerSpeed))
             }
@@ -382,6 +387,8 @@ class Scene(private val window: GameWindow) {
 
     fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {
 
+
+
         if(run.buttonPressRange(player, objList[468], buttonOrientation, buttonHitbox) && window.getKeyState(GLFW_KEY_E) && buttonPressed[0] == 0) {
             buttonPressed[0] = 1
         }
@@ -391,7 +398,14 @@ class Scene(private val window: GameWindow) {
         if(run.buttonPressRange(player, objList[470], buttonOrientation, buttonHitbox) && window.getKeyState(GLFW_KEY_E) && buttonPressed[2] == 0) {
             buttonPressed[2] = 1
         }
-        if(window.getKeyState(GLFW_KEY_L)) catchEm = true
+        if(window.getKeyState(GLFW_KEY_L)) {
+            catchEm = true
+            Timer("Neuer Timer", false).schedule(timerTask { run.portTo(player, spawn, "z+") }, 20000 )
+            fixedRateTimer(name = "hello-timer",
+                initialDelay = 10000, period = 10000,daemon = false) {
+                println("Hello")
+            }
+        }
 
     }
 
