@@ -5,11 +5,29 @@ import cga.exercise.components.geometry.Renderable
 import org.joml.Math
 import org.joml.Vector3f
 import java.util.*
-import kotlin.concurrent.schedule
-import kotlin.concurrent.scheduleAtFixedRate
+import kotlin.concurrent.timerTask
 
 var tap = 0
 var step = 0
+var gameOver = false
+var cpyGhostWalkSpeed = 0f
+var cpyGhostCornerSpeed = 0f
+
+var wallDespawn: Int = 0
+var gateOrientation: Int = 0
+var buttonOrientation: Int = 0
+var portalOrientation: Int = 0
+private val buttonStatus = mutableListOf(false, false, false)
+
+var cpyPlayerSpeed: Float = 0f
+var cpyCamera = TronCamera()
+
+var cpyObjList = mutableListOf<Renderable>()
+var cpyAllHitboxes = mutableListOf<MutableList<Float>>()
+
+private val phVector3f = Vector3f(0f, 0f, 0f)
+private val routePosition = mutableListOf<Vector3f>()
+private val routeRotatePosition = mutableListOf<Vector3f>()
 
 class Labyrinth {
 
@@ -58,46 +76,92 @@ class Labyrinth {
 
     }
 
-    fun monsterLetLoose(monster: Renderable, routePosition: MutableList<Vector3f>, routeRotatePosition: MutableList<Vector3f>, rnd: Int) {
+    fun monsterLetLoose(rnd: Int) {
         when(rnd) {
             1 -> {
-                if (monster.getWorldPosition().z < routePosition[1].z && step == 0) monster.translateGlobal(Vector3f(0f, 0f, 0.02f)) else if (monster.getWorldPosition().z > routePosition[1].z && step == 0) step = 1
-                if (monster.getWorldPosition().x < routePosition[2].x && step == 1) monster.rotateAroundPoint(0f, 0.006f, 0f, routeRotatePosition[0]) else if (monster.getWorldPosition().x > routePosition[2].x && step == 1) step = 2
-                if (monster.getWorldPosition().z < routePosition[3].z && step == 2) monster.rotateAroundPoint(0f, -0.006f, 0f, routeRotatePosition[1]) else if (monster.getWorldPosition().z > routePosition[3].z && step == 2) step = 3
-                if (monster.getWorldPosition().x > routePosition[4].x && step == 3) monster.translateGlobal(Vector3f(-0.02f, 0f, 0f)) else if (monster.getWorldPosition().x < routePosition[4].x && step == 3) step = 4
-                if (monster.getWorldPosition().z < routePosition[5].z && step == 4) monster.rotateAroundPoint(0f, 0.006f, 0f, routeRotatePosition[2]) else if (monster.getWorldPosition().z > routePosition[5].z && step == 4) step = 5
-                if (monster.getWorldPosition().z < routePosition[6].z && step == 5) monster.translateGlobal(Vector3f(0f, 0f, 0.02f)) else if (monster.getWorldPosition().z > routePosition[6].z && step == 5) step = 6
-                if (monster.getWorldPosition().x > routePosition[7].x && step == 6) monster.rotateAroundPoint(0f, -0.006f, 0f, routeRotatePosition[3]) else if (monster.getWorldPosition().x < routePosition[7].x && step == 6) step = 7
-                if (monster.getWorldPosition().x > routePosition[8].x && step == 7) monster.translateGlobal(Vector3f(-0.02f, 0f, 0f)) else if (monster.getWorldPosition().x < routePosition[8].x && step == 7) step = 8
-                if (monster.getWorldPosition().z < routePosition[9].z && step == 8) monster.rotateAroundPoint(0f, 0.006f, 0f, routeRotatePosition[4]) else if (monster.getWorldPosition().z > routePosition[9].z && step == 8) step = 9
-                if (monster.getWorldPosition().z < routePosition[10].z && step == 9) monster.translateGlobal(Vector3f(0f, 0f, 0.02f)) else if (monster.getWorldPosition().z > routePosition[10].z && step == 9) step = 10
-                if (monster.getWorldPosition().x < routePosition[11].x && step == 10) monster.rotateAroundPoint(0f, 0.006f, 0f, routeRotatePosition[5]) else if (monster.getWorldPosition().x > routePosition[11].x && step == 10) step = 11
-                if (monster.getWorldPosition().x < routePosition[12].x && step == 11) monster.translateGlobal(Vector3f(0.02f, 0f, 0f)) else if (monster.getWorldPosition().x > routePosition[12].x && step == 11) step = 12
-                if (monster.getWorldPosition().z > routePosition[13].z && step == 12) monster.rotateAroundPoint(0f, 0.006f, 0f, routeRotatePosition[6]) else if (monster.getWorldPosition().z < routePosition[13].z && step == 12) step = 13
-                if (monster.getWorldPosition().z > routePosition[14].z && step == 13) monster.translateGlobal(Vector3f(0f, 0f, -0.02f)) else if (monster.getWorldPosition().z < routePosition[14].z && step == 13) step = 14
-                if (monster.getWorldPosition().x < routePosition[15].x && step == 14) monster.rotateAroundPoint(0f, -0.006f, 0f, routeRotatePosition[7]) else if (monster.getWorldPosition().x > routePosition[15].x && step == 14) step = 15
-                if (monster.getWorldPosition().z > routePosition[16].z && step == 15) monster.rotateAroundPoint(0f, 0.006f, 0f, routeRotatePosition[8]) else if (monster.getWorldPosition().z < routePosition[16].z && step == 15) step = 16
-                if (monster.getWorldPosition().x < routePosition[17].x && step == 16) monster.rotateAroundPoint(0f, -0.006f, 0f, routeRotatePosition[9]) else if (monster.getWorldPosition().x > routePosition[17].x && step == 16) step = 17
-                if (monster.getWorldPosition().z > routePosition[18].z && step == 17) monster.rotateAroundPoint(0f, 0.006f, 0f, routeRotatePosition[10]) else if (monster.getWorldPosition().z < routePosition[18].z && step == 17) step = 18
-                if (monster.getWorldPosition().x < routePosition[19].x && step == 18) monster.rotateAroundPoint(0f, -0.006f, 0f, routeRotatePosition[11]) else if (monster.getWorldPosition().x > routePosition[19].x && step == 18) step = 19
-                if (monster.getWorldPosition().x < routePosition[20].x && step == 19) monster.translateGlobal(Vector3f(0.02f, 0f, 0f)) else if (monster.getWorldPosition().x > routePosition[20].x && step == 19) step = 20
-                if (monster.getWorldPosition().z > routePosition[21].z && step == 20) monster.rotateAroundPoint(0f, 0.006f, 0f, routeRotatePosition[12]) else if (monster.getWorldPosition().z < routePosition[21].z && step == 20) step = 21
-                if (monster.getWorldPosition().z > routePosition[22].z && step == 21) monster.translateGlobal(Vector3f(0f, 0f, -0.02f)) else if (monster.getWorldPosition().z < routePosition[22].z && step == 21) step = 22
-                if (monster.getWorldPosition().x > routePosition[23].x && step == 22) monster.rotateAroundPoint(0f, 0.006f, 0f, routeRotatePosition[13]) else if (monster.getWorldPosition().x < routePosition[23].x && step == 22) step = 3
+                if (cpyObjList[476].getWorldPosition().z < routePosition[1].z && step == 0) cpyObjList[476].translateGlobal(Vector3f(0f, 0f, cpyGhostWalkSpeed)) else if (cpyObjList[476].getWorldPosition().z > routePosition[1].z && step == 0) step = 1
+                if (cpyObjList[476].getWorldPosition().x < routePosition[2].x && step == 1) cpyObjList[476].rotateAroundPoint(0f, cpyGhostCornerSpeed, 0f, routeRotatePosition[0]) else if (cpyObjList[476].getWorldPosition().x > routePosition[2].x && step == 1) step = 2
+                if (cpyObjList[476].getWorldPosition().z < routePosition[3].z && step == 2) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[1]) else if (cpyObjList[476].getWorldPosition().z > routePosition[3].z && step == 2) step = 3
+                if (cpyObjList[476].getWorldPosition().x > routePosition[4].x && step == 3) cpyObjList[476].translateGlobal(Vector3f(-cpyGhostWalkSpeed, 0f, 0f)) else if (cpyObjList[476].getWorldPosition().x < routePosition[4].x && step == 3) step = 4
+                if (cpyObjList[476].getWorldPosition().z < routePosition[5].z && step == 4) cpyObjList[476].rotateAroundPoint(0f, cpyGhostCornerSpeed, 0f, routeRotatePosition[2]) else if (cpyObjList[476].getWorldPosition().z > routePosition[5].z && step == 4) step = 5
+                if (cpyObjList[476].getWorldPosition().z < routePosition[6].z && step == 5) cpyObjList[476].translateGlobal(Vector3f(0f, 0f, cpyGhostWalkSpeed)) else if (cpyObjList[476].getWorldPosition().z > routePosition[6].z && step == 5) step = 6
+                if (cpyObjList[476].getWorldPosition().x > routePosition[7].x && step == 6) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[3]) else if (cpyObjList[476].getWorldPosition().x < routePosition[7].x && step == 6) step = 7
+                if (cpyObjList[476].getWorldPosition().x > routePosition[8].x && step == 7) cpyObjList[476].translateGlobal(Vector3f(-cpyGhostWalkSpeed, 0f, 0f)) else if (cpyObjList[476].getWorldPosition().x < routePosition[8].x && step == 7) step = 8
+                if (cpyObjList[476].getWorldPosition().z < routePosition[9].z && step == 8) cpyObjList[476].rotateAroundPoint(0f, cpyGhostCornerSpeed, 0f, routeRotatePosition[4]) else if (cpyObjList[476].getWorldPosition().z > routePosition[9].z && step == 8) step = 9
+                if (cpyObjList[476].getWorldPosition().z < routePosition[10].z && step == 9) cpyObjList[476].translateGlobal(Vector3f(0f, 0f, cpyGhostWalkSpeed)) else if (cpyObjList[476].getWorldPosition().z > routePosition[10].z && step == 9) step = 10
+                if (cpyObjList[476].getWorldPosition().x < routePosition[11].x && step == 10) cpyObjList[476].rotateAroundPoint(0f, cpyGhostCornerSpeed, 0f, routeRotatePosition[5]) else if (cpyObjList[476].getWorldPosition().x > routePosition[11].x && step == 10) step = 11
+                if (cpyObjList[476].getWorldPosition().x < routePosition[12].x && step == 11) cpyObjList[476].translateGlobal(Vector3f(cpyGhostWalkSpeed, 0f, 0f)) else if (cpyObjList[476].getWorldPosition().x > routePosition[12].x && step == 11) step = 12
+                if (cpyObjList[476].getWorldPosition().z > routePosition[13].z && step == 12) cpyObjList[476].rotateAroundPoint(0f, cpyGhostCornerSpeed, 0f, routeRotatePosition[6]) else if (cpyObjList[476].getWorldPosition().z < routePosition[13].z && step == 12) step = 13
+                if (cpyObjList[476].getWorldPosition().z > routePosition[14].z && step == 13) cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -cpyGhostWalkSpeed)) else if (cpyObjList[476].getWorldPosition().z < routePosition[14].z && step == 13) step = 14
+                if (cpyObjList[476].getWorldPosition().x < routePosition[15].x && step == 14) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[7]) else if (cpyObjList[476].getWorldPosition().x > routePosition[15].x && step == 14) step = 15
+                if (cpyObjList[476].getWorldPosition().z > routePosition[16].z && step == 15) cpyObjList[476].rotateAroundPoint(0f, cpyGhostCornerSpeed, 0f, routeRotatePosition[8]) else if (cpyObjList[476].getWorldPosition().z < routePosition[16].z && step == 15) step = 16
+                if (cpyObjList[476].getWorldPosition().x < routePosition[17].x && step == 16) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[9]) else if (cpyObjList[476].getWorldPosition().x > routePosition[17].x && step == 16) step = 17
+                if (cpyObjList[476].getWorldPosition().z > routePosition[18].z && step == 17) cpyObjList[476].rotateAroundPoint(0f, cpyGhostCornerSpeed, 0f, routeRotatePosition[10]) else if (cpyObjList[476].getWorldPosition().z < routePosition[18].z && step == 17) step = 18
+                if (cpyObjList[476].getWorldPosition().x < routePosition[19].x && step == 18) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[11]) else if (cpyObjList[476].getWorldPosition().x > routePosition[19].x && step == 18) step = 19
+                if (cpyObjList[476].getWorldPosition().x < routePosition[20].x && step == 19) cpyObjList[476].translateGlobal(Vector3f(cpyGhostWalkSpeed, 0f, 0f)) else if (cpyObjList[476].getWorldPosition().x > routePosition[20].x && step == 19) step = 20
+                if (cpyObjList[476].getWorldPosition().z > routePosition[21].z && step == 20) cpyObjList[476].rotateAroundPoint(0f, cpyGhostCornerSpeed, 0f, routeRotatePosition[12]) else if (cpyObjList[476].getWorldPosition().z < routePosition[21].z && step == 20) step = 21
+                if (cpyObjList[476].getWorldPosition().z > routePosition[22].z && step == 21) cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -cpyGhostWalkSpeed)) else if (cpyObjList[476].getWorldPosition().z < routePosition[22].z && step == 21) step = 22
+                if (cpyObjList[476].getWorldPosition().x > routePosition[23].x && step == 22) cpyObjList[476].rotateAroundPoint(0f, cpyGhostCornerSpeed, 0f, routeRotatePosition[13]) else if (cpyObjList[476].getWorldPosition().x < routePosition[23].x && step == 22) step = 3
             }
             2 -> {
-
+                if (cpyObjList[476].getWorldPosition().z > routePosition[1].z && step == 0) cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -cpyGhostWalkSpeed)) else if (cpyObjList[476].getWorldPosition().z < routePosition[1].z && step == 0) step = 1
+                if (cpyObjList[476].getWorldPosition().z > routePosition[2].z && step == 1) cpyObjList[476].rotateAroundPoint(0f, cpyGhostCornerSpeed, 0f, routeRotatePosition[0]) else if (cpyObjList[476].getWorldPosition().z < routePosition[2].z && step == 1) step = 2
+                if (cpyObjList[476].getWorldPosition().x > routePosition[3].x && step == 2) cpyObjList[476].translateGlobal(Vector3f(-cpyGhostWalkSpeed, 0f, 0f)) else if (cpyObjList[476].getWorldPosition().x < routePosition[3].x && step == 2) step = 3
+                if (cpyObjList[476].getWorldPosition().z > routePosition[4].z && step == 3) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[1]) else if (cpyObjList[476].getWorldPosition().z < routePosition[4].z && step == 3) step = 4
+                if (cpyObjList[476].getWorldPosition().z > routePosition[5].z && step == 4) cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -cpyGhostWalkSpeed)) else if (cpyObjList[476].getWorldPosition().z < routePosition[5].z && step == 4) step = 5
+                if (cpyObjList[476].getWorldPosition().x < routePosition[6].x && step == 5) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[2]) else if (cpyObjList[476].getWorldPosition().x > routePosition[6].x && step == 5) step = 6
+                if (cpyObjList[476].getWorldPosition().x < routePosition[7].x && step == 6) cpyObjList[476].translateGlobal(Vector3f(cpyGhostWalkSpeed, 0f, 0f)) else if (cpyObjList[476].getWorldPosition().x > routePosition[7].x && step == 6) step = 7
+                if (cpyObjList[476].getWorldPosition().x < routePosition[8].x && step == 7) cpyObjList[476].rotateAroundPoint(0f, cpyGhostCornerSpeed, 0f, routeRotatePosition[3]) else if (cpyObjList[476].getWorldPosition().x > routePosition[8].x && step == 7) step = 8
+                if (cpyObjList[476].getWorldPosition().z > routePosition[9].z && step == 8) cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -cpyGhostWalkSpeed)) else if (cpyObjList[476].getWorldPosition().z < routePosition[9].z && step == 8) step = 9
+                if (cpyObjList[476].getWorldPosition().x < routePosition[10].x && step == 9) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[4]) else if (cpyObjList[476].getWorldPosition().x > routePosition[10].x && step == 9) step = 10
+                if (cpyObjList[476].getWorldPosition().x < routePosition[11].x && step == 10) cpyObjList[476].translateGlobal(Vector3f(cpyGhostWalkSpeed, 0f, 0f)) else if (cpyObjList[476].getWorldPosition().x > routePosition[11].x && step == 10) step = 11
+                if (cpyObjList[476].getWorldPosition().z < routePosition[12].z && step == 11) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[5]) else if (cpyObjList[476].getWorldPosition().z > routePosition[12].z && step == 11) step = 12
+                if (cpyObjList[476].getWorldPosition().z < routePosition[13].z && step == 12) cpyObjList[476].translateGlobal(Vector3f(0f, 0f, cpyGhostWalkSpeed)) else if (cpyObjList[476].getWorldPosition().z > routePosition[13].z && step == 12) step = 13
+                if (cpyObjList[476].getWorldPosition().x > routePosition[14].x && step == 13) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[6]) else if (cpyObjList[476].getWorldPosition().x < routePosition[14].x && step == 13) step = 14
+                if (cpyObjList[476].getWorldPosition().x > routePosition[15].x && step == 14) cpyObjList[476].translateGlobal(Vector3f(-cpyGhostWalkSpeed, 0f, 0f)) else if (cpyObjList[476].getWorldPosition().x < routePosition[11].x && step == 14) step = 15
+                if (cpyObjList[476].getWorldPosition().z < routePosition[16].z && step == 15) cpyObjList[476].rotateAroundPoint(0f, cpyGhostCornerSpeed, 0f, routeRotatePosition[7]) else if (cpyObjList[476].getWorldPosition().z > routePosition[16].z && step == 15) step = 16
+                if (cpyObjList[476].getWorldPosition().z < routePosition[17].z && step == 16) cpyObjList[476].translateGlobal(Vector3f(0f, 0f, cpyGhostWalkSpeed)) else if (cpyObjList[476].getWorldPosition().z > routePosition[17].z && step == 16) step = 17
+                if (cpyObjList[476].getWorldPosition().x > routePosition[18].x && step == 17) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[8]) else if (cpyObjList[476].getWorldPosition().x < routePosition[18].x && step == 17) step = 2
             }
             3 -> {
-
+                if (cpyObjList[476].getWorldPosition().x < routePosition[1].x && step == 0) cpyObjList[476].translateGlobal(Vector3f(cpyGhostWalkSpeed, 0f, 0f)) else if (cpyObjList[476].getWorldPosition().x > routePosition[1].x && step == 0) step = 1
+                if (cpyObjList[476].getWorldPosition().z > routePosition[2].z && step == 1) cpyObjList[476].rotateAroundPoint(0f, cpyGhostCornerSpeed, 0f, routeRotatePosition[0]) else if (cpyObjList[476].getWorldPosition().z < routePosition[2].z && step == 1) step = 2
+                if (cpyObjList[476].getWorldPosition().z > routePosition[3].z && step == 2) cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -cpyGhostWalkSpeed)) else if (cpyObjList[476].getWorldPosition().z < routePosition[3].z && step == 2) step = 3
+                if (cpyObjList[476].getWorldPosition().z > routePosition[4].z && step == 3) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[1]) else if (cpyObjList[476].getWorldPosition().z < routePosition[4].z && step == 3) step = 4
+                if (cpyObjList[476].getWorldPosition().x < routePosition[5].x && step == 4) cpyObjList[476].translateGlobal(Vector3f(cpyGhostWalkSpeed, 0f, 0f)) else if (cpyObjList[476].getWorldPosition().x > routePosition[5].x && step == 4) step = 5
+                if (cpyObjList[476].getWorldPosition().z > routePosition[6].z && step == 5) cpyObjList[476].rotateAroundPoint(0f, cpyGhostCornerSpeed, 0f, routeRotatePosition[2]) else if (cpyObjList[476].getWorldPosition().z < routePosition[6].z && step == 5) step = 6
+                if (cpyObjList[476].getWorldPosition().z > routePosition[7].z && step == 6) cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -cpyGhostWalkSpeed)) else if (cpyObjList[476].getWorldPosition().z < routePosition[7].z && step == 6) step = 7
+                if (cpyObjList[476].getWorldPosition().x < routePosition[8].x && step == 7) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[3]) else if (cpyObjList[476].getWorldPosition().x > routePosition[8].x && step == 7) step = 8
+                if (cpyObjList[476].getWorldPosition().x < routePosition[9].x && step == 8) cpyObjList[476].translateGlobal(Vector3f(cpyGhostWalkSpeed, 0f, 0f)) else if (cpyObjList[476].getWorldPosition().x > routePosition[9].x && step == 8) step = 9
+                if (cpyObjList[476].getWorldPosition().z < routePosition[10].z && step == 9) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[4]) else if (cpyObjList[476].getWorldPosition().z > routePosition[10].z && step == 9) step = 10
+                if (cpyObjList[476].getWorldPosition().z < routePosition[11].z && step == 10) cpyObjList[476].translateGlobal(Vector3f(0f, 0f, cpyGhostWalkSpeed)) else if (cpyObjList[476].getWorldPosition().z > routePosition[11].z && step == 10) step = 11
+                if (cpyObjList[476].getWorldPosition().x > routePosition[12].x && step == 11) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[5]) else if (cpyObjList[476].getWorldPosition().x < routePosition[12].x && step == 11) step = 12
+                if (cpyObjList[476].getWorldPosition().x > routePosition[13].x && step == 12) cpyObjList[476].translateGlobal(Vector3f(-cpyGhostWalkSpeed, 0f, 0f)) else if (cpyObjList[476].getWorldPosition().x < routePosition[13].x && step == 12) step = 13
+                if (cpyObjList[476].getWorldPosition().z > routePosition[14].z && step == 13) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[6]) else if (cpyObjList[476].getWorldPosition().z < routePosition[14].z && step == 13) step = 2
             }
             4 -> {
-
+                if (cpyObjList[476].getWorldPosition().x > routePosition[1].x && step == 0) cpyObjList[476].translateGlobal(Vector3f(-cpyGhostWalkSpeed, 0f, 0f)) else if (cpyObjList[476].getWorldPosition().x < routePosition[1].x && step == 0) step = 1
+                if (cpyObjList[476].getWorldPosition().z < routePosition[2].z && step == 1) cpyObjList[476].rotateAroundPoint(0f, cpyGhostCornerSpeed, 0f, routeRotatePosition[0]) else if (cpyObjList[476].getWorldPosition().z > routePosition[2].z && step == 1) step = 2
+                if (cpyObjList[476].getWorldPosition().z < routePosition[3].z && step == 2) cpyObjList[476].translateGlobal(Vector3f(0f, 0f, cpyGhostWalkSpeed)) else if (cpyObjList[476].getWorldPosition().z > routePosition[3].z && step == 2) step = 3
+                if (cpyObjList[476].getWorldPosition().z < routePosition[4].z && step == 3) cpyObjList[476].rotateAroundPoint(0f, cpyGhostCornerSpeed, 0f, routeRotatePosition[1]) else if (cpyObjList[476].getWorldPosition().z > routePosition[4].z && step == 3) step = 4
+                if (cpyObjList[476].getWorldPosition().z < routePosition[5].z && step == 4) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[2]) else if (cpyObjList[476].getWorldPosition().z > routePosition[5].z && step == 4) step = 5
+                if (cpyObjList[476].getWorldPosition().z < routePosition[6].z && step == 5) cpyObjList[476].translateGlobal(Vector3f(0f, 0f, cpyGhostWalkSpeed)) else if (cpyObjList[476].getWorldPosition().z > routePosition[6].z && step == 5) step = 6
+                if (cpyObjList[476].getWorldPosition().z < routePosition[7].z && step == 6) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[3]) else if (cpyObjList[476].getWorldPosition().z > routePosition[7].z && step == 6) step = 7
+                if (cpyObjList[476].getWorldPosition().x > routePosition[8].x && step == 7) cpyObjList[476].translateGlobal(Vector3f(-cpyGhostWalkSpeed, 0f, 0f)) else if (cpyObjList[476].getWorldPosition().x < routePosition[8].x && step == 7) step = 8
+                if (cpyObjList[476].getWorldPosition().z > routePosition[9].z && step == 8) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[4]) else if (cpyObjList[476].getWorldPosition().z < routePosition[9].z && step == 8) step = 9
+                if (cpyObjList[476].getWorldPosition().z > routePosition[10].z && step == 9) cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -cpyGhostWalkSpeed)) else if (cpyObjList[476].getWorldPosition().z < routePosition[10].z && step == 9) step = 10
+                if (cpyObjList[476].getWorldPosition().z > routePosition[11].z && step == 10) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[5]) else if (cpyObjList[476].getWorldPosition().z < routePosition[11].z && step == 10) step = 11
+                if (cpyObjList[476].getWorldPosition().x < routePosition[12].x && step == 11) cpyObjList[476].translateGlobal(Vector3f(cpyGhostWalkSpeed, 0f, 0f)) else if (cpyObjList[476].getWorldPosition().x > routePosition[12].x && step == 11) step = 12
+                if (cpyObjList[476].getWorldPosition().z > routePosition[13].z && step == 12) cpyObjList[476].rotateAroundPoint(0f, cpyGhostCornerSpeed, 0f, routeRotatePosition[6]) else if (cpyObjList[476].getWorldPosition().z < routePosition[13].z && step == 12) step = 13
+                if (cpyObjList[476].getWorldPosition().z > routePosition[14].z && step == 13) cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -cpyGhostWalkSpeed)) else if (cpyObjList[476].getWorldPosition().z < routePosition[14].z && step == 13) step = 14
+                if (cpyObjList[476].getWorldPosition().z > routePosition[15].z && step == 14) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[7]) else if (cpyObjList[476].getWorldPosition().z < routePosition[15].z && step == 14) step = 15
+                if (cpyObjList[476].getWorldPosition().x < routePosition[16].x && step == 15) cpyObjList[476].translateGlobal(Vector3f(cpyGhostWalkSpeed, 0f, 0f)) else if (cpyObjList[476].getWorldPosition().x > routePosition[16].x && step == 15) step = 16
+                if (cpyObjList[476].getWorldPosition().z < routePosition[17].z && step == 16) cpyObjList[476].rotateAroundPoint(0f, -cpyGhostCornerSpeed, 0f, routeRotatePosition[8]) else if (cpyObjList[476].getWorldPosition().z > routePosition[17].z && step == 16) step = 2
             }
         }
     }
 
-    fun buttonPressRange(firstMesh: Renderable, secoundMesh: Renderable, buttonOrientation: Int, buttonHitbox: MutableList<Float>): Boolean {
+    fun buttonPressRange(firstMesh: Renderable, secoundMesh: Renderable): Boolean {
 
         val minusX: Float
         val minusZ: Float
@@ -110,8 +174,8 @@ class Labyrinth {
 
         when (buttonOrientation) {
             0 -> {
-                minusX = secoundMesh.getWorldPosition().x - buttonHitbox[0]
-                plusX = secoundMesh.getWorldPosition().x + buttonHitbox[0]
+                minusX = secoundMesh.getWorldPosition().x - cpyAllHitboxes[3][0]
+                plusX = secoundMesh.getWorldPosition().x + cpyAllHitboxes[3][0]
                 plusZ = secoundMesh.getWorldPosition().z + 2
 
                 f = !(firstMesh.getWorldPosition().z - 1 < plusZ && firstMesh.getWorldPosition().z + 1 > plusZ)
@@ -124,8 +188,8 @@ class Labyrinth {
             }
             1 -> {
                 plusX = secoundMesh.getWorldPosition().x + 2
-                plusZ = secoundMesh.getWorldPosition().z + buttonHitbox[1]
-                minusZ = secoundMesh.getWorldPosition().z - buttonHitbox[1]
+                plusZ = secoundMesh.getWorldPosition().z + cpyAllHitboxes[3][1]
+                minusZ = secoundMesh.getWorldPosition().z - cpyAllHitboxes[3][1]
 
                 g = !(firstMesh.getWorldPosition().x - 1 < plusX && firstMesh.getWorldPosition().x + 1 > plusX)
                         || firstMesh.getWorldPosition().z - 0.8 > plusZ
@@ -141,15 +205,15 @@ class Labyrinth {
 
     }
 
-    fun buttonMovement(buttonPressed: MutableList<Int>, buttonStatus: MutableList<Boolean>, buttonSpawn: MutableList<Vector3f>, buttonOrientation: Int, objList: MutableList<Renderable>) {
+    fun buttonMovement(buttonPressed: MutableList<Int>, buttonSpawn: MutableList<Vector3f>) {
 
         when {
             buttonPressed[0] == 1 || buttonPressed[1] == 1 || buttonPressed[2] == 1 -> {
                 if (buttonPressed[0] == 1) {
-                    if (buttonOrientation == 0 && objList[468].getWorldPosition().z > buttonSpawn[3].z) {
-                        objList[468].translateGlobal(Vector3f(0f, 0.0f, -0.01f))
-                    } else if (buttonOrientation == 1 && objList[468].getWorldPosition().x > buttonSpawn[3].x) {
-                        objList[468].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
+                    if (buttonOrientation == 0 && cpyObjList[468].getWorldPosition().z > buttonSpawn[3].z) {
+                        cpyObjList[468].translateGlobal(Vector3f(0f, 0.0f, -0.01f))
+                    } else if (buttonOrientation == 1 && cpyObjList[468].getWorldPosition().x > buttonSpawn[3].x) {
+                        cpyObjList[468].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
                     } else {
                         buttonStatus[0] = !buttonStatus[0]
                         println(buttonStatus[0])
@@ -157,10 +221,10 @@ class Labyrinth {
                     }
                 }
                 if (buttonPressed[1] == 1) {
-                    if (buttonOrientation == 0 && objList[469].getWorldPosition().z > buttonSpawn[4].z) {
-                        objList[469].translateGlobal(Vector3f(0f, 0.0f, -0.01f))
-                    } else if (buttonOrientation == 1 && objList[469].getWorldPosition().x > buttonSpawn[4].x) {
-                        objList[469].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
+                    if (buttonOrientation == 0 && cpyObjList[469].getWorldPosition().z > buttonSpawn[4].z) {
+                        cpyObjList[469].translateGlobal(Vector3f(0f, 0.0f, -0.01f))
+                    } else if (buttonOrientation == 1 && cpyObjList[469].getWorldPosition().x > buttonSpawn[4].x) {
+                        cpyObjList[469].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
                     } else {
                         buttonStatus[1] = !buttonStatus[1]
                         println(buttonStatus[1])
@@ -168,10 +232,10 @@ class Labyrinth {
                     }
                 }
                 if (buttonPressed[2] == 1) {
-                    if (buttonOrientation == 0 && objList[470].getWorldPosition().z > buttonSpawn[5].z) {
-                        objList[470].translateGlobal(Vector3f(0f, 0.0f, -0.01f))
-                    } else if (buttonOrientation == 1 && objList[470].getWorldPosition().x > buttonSpawn[5].x) {
-                        objList[470].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
+                    if (buttonOrientation == 0 && cpyObjList[470].getWorldPosition().z > buttonSpawn[5].z) {
+                        cpyObjList[470].translateGlobal(Vector3f(0f, 0.0f, -0.01f))
+                    } else if (buttonOrientation == 1 && cpyObjList[470].getWorldPosition().x > buttonSpawn[5].x) {
+                        cpyObjList[470].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
                     } else {
                         buttonStatus[2] = !buttonStatus[2]
                         println(buttonStatus[2])
@@ -181,28 +245,28 @@ class Labyrinth {
             }
             buttonPressed[0] == -1 || buttonPressed[1] == -1 || buttonPressed[2] == -1 -> {
                 if (buttonPressed[0] == -1) {
-                    if (buttonOrientation == 0 && objList[468].getWorldPosition().z < buttonSpawn[0].z) {
-                        objList[468].translateGlobal(Vector3f(0.0f, 0.0f, 0.01f))
-                    } else if (buttonOrientation == 1 && objList[468].getWorldPosition().x < buttonSpawn[0].x) {
-                        objList[468].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
+                    if (buttonOrientation == 0 && cpyObjList[468].getWorldPosition().z < buttonSpawn[0].z) {
+                        cpyObjList[468].translateGlobal(Vector3f(0.0f, 0.0f, 0.01f))
+                    } else if (buttonOrientation == 1 && cpyObjList[468].getWorldPosition().x < buttonSpawn[0].x) {
+                        cpyObjList[468].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
                     } else {
                         buttonPressed[0] = 0
                     }
                 }
                 if (buttonPressed[1] == -1) {
-                    if (buttonOrientation == 0 && objList[469].getWorldPosition().z < buttonSpawn[1].z) {
-                        objList[469].translateGlobal(Vector3f(0.0f, 0.0f, 0.01f))
-                    } else if (buttonOrientation == 1 && objList[469].getWorldPosition().x < buttonSpawn[1].x) {
-                        objList[469].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
+                    if (buttonOrientation == 0 && cpyObjList[469].getWorldPosition().z < buttonSpawn[1].z) {
+                        cpyObjList[469].translateGlobal(Vector3f(0.0f, 0.0f, 0.01f))
+                    } else if (buttonOrientation == 1 && cpyObjList[469].getWorldPosition().x < buttonSpawn[1].x) {
+                        cpyObjList[469].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
                     } else {
                         buttonPressed[1] = 0
                     }
                 }
                 if (buttonPressed[2] == -1) {
-                    if (buttonOrientation == 0 && objList[470].getWorldPosition().z < buttonSpawn[2].z) {
-                        objList[470].translateGlobal(Vector3f(0.0f, 0.0f, 0.01f))
-                    } else if (buttonOrientation == 1 && objList[470].getWorldPosition().x < buttonSpawn[2].x) {
-                        objList[470].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
+                    if (buttonOrientation == 0 && cpyObjList[470].getWorldPosition().z < buttonSpawn[2].z) {
+                        cpyObjList[470].translateGlobal(Vector3f(0.0f, 0.0f, 0.01f))
+                    } else if (buttonOrientation == 1 && cpyObjList[470].getWorldPosition().x < buttonSpawn[2].x) {
+                        cpyObjList[470].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
                     } else {
                         buttonPressed[2] = 0
                     }
@@ -211,47 +275,38 @@ class Labyrinth {
         }
     }
 
-    fun buttonStatus(buttonStatus: MutableList<Boolean>, objList: MutableList<Renderable>, doorSpawn: MutableList<Vector3f>, gateOrientation: Int, camera: TronCamera, player: Renderable, firstCameraPosition: Renderable): Boolean {
+    fun buttonStatus(exitSpawn: MutableList<Vector3f>): Boolean {
         when {
             buttonStatus[0] && buttonStatus[1] && buttonStatus[2] -> {
-                if (gateOrientation == 0 && (objList[474].getWorldPosition().x > doorSpawn[2].x || objList[475].getWorldPosition().x < doorSpawn[3].x)) {
-                    objList[474].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
-                    objList[475].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
-                    camera.parent = firstCameraPosition
-
-                    var count = 0
-
-
-
-                    Timer("SettingUp", false).schedule(10000) {
-                        portTo(player, objList[481], "z+")
-                        println(count)
-                        count++
-                    }
-
+                if (gateOrientation == 0 && (cpyObjList[474].getWorldPosition().x > exitSpawn[2].x || cpyObjList[475].getWorldPosition().x < exitSpawn[3].x)) {
+                    cpyObjList[474].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
+                    cpyObjList[475].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
+                    cpyCamera.parent = cpyObjList[484]
+                    Timer("Time to get Out", false).schedule(timerTask { portTo(cpyObjList[477], cpyObjList[481], "z+") }, 180000 )
                     return true
-                } else if (gateOrientation == 1 && (objList[474].getWorldPosition().z > doorSpawn[2].z || objList[475].getWorldPosition().z < doorSpawn[3].z)) {
-                    objList[474].translateGlobal(Vector3f(0.0f, 0.0f, -0.01f))
-                    objList[475].translateGlobal(Vector3f(0.0f, 0.0f, 0.01f))
-                    camera.parent = firstCameraPosition
+                } else if (gateOrientation == 1 && (cpyObjList[474].getWorldPosition().z > exitSpawn[2].z || cpyObjList[475].getWorldPosition().z < exitSpawn[3].z)) {
+                    cpyObjList[474].translateGlobal(Vector3f(0.0f, 0.0f, -0.01f))
+                    cpyObjList[475].translateGlobal(Vector3f(0.0f, 0.0f, 0.01f))
+                    cpyCamera.parent = cpyObjList[484]
                     return true
                 } else {
-                    camera.parent = player
+                    if(!gameOver) cpyCamera.parent = cpyObjList[477]
                 }
             }
             !buttonStatus[0] && !buttonStatus[1] && !buttonStatus[2] -> {
-                if (gateOrientation == 0 && (objList[474].getWorldPosition().x < doorSpawn[0].x || objList[475].getWorldPosition().x > doorSpawn[1].x)) {
-                    objList[474].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
-                    objList[475].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
-                    camera.parent = firstCameraPosition
+                if (gateOrientation == 0 && (cpyObjList[474].getWorldPosition().x < exitSpawn[0].x || cpyObjList[475].getWorldPosition().x > exitSpawn[1].x)) {
+                    cpyObjList[474].translateGlobal(Vector3f(0.01f, 0.0f, 0.0f))
+                    cpyObjList[475].translateGlobal(Vector3f(-0.01f, 0.0f, 0.0f))
+                    cpyCamera.parent = cpyObjList[484]
                     return true
-                } else if (gateOrientation == 1 && (objList[474].getWorldPosition().z < doorSpawn[0].z || objList[475].getWorldPosition().z < doorSpawn[1].z)) {
-                    objList[474].translateGlobal(Vector3f(0.0f, 0.0f, 0.01f))
-                    objList[475].translateGlobal(Vector3f(0.0f, 0.0f, -0.01f))
-                    camera.parent = firstCameraPosition
+                } else if (gateOrientation == 1 && (cpyObjList[474].getWorldPosition().z < exitSpawn[0].z || cpyObjList[475].getWorldPosition().z < exitSpawn[1].z)) {
+                    cpyObjList[474].translateGlobal(Vector3f(0.0f, 0.0f, 0.01f))
+                    cpyObjList[475].translateGlobal(Vector3f(0.0f, 0.0f, -0.01f))
+                    cpyCamera.parent = cpyObjList[484]
+                    Timer("Time to get Out", false).schedule(timerTask { portTo(cpyObjList[477], cpyObjList[481], "z+") }, 180000 )
                     return true
                 } else {
-                    camera.parent = player
+                    if(!gameOver) cpyCamera.parent = cpyObjList[477]
                 }
             }
         }
@@ -285,90 +340,111 @@ class Labyrinth {
 
     }
 
-    fun collision(firstMesh: Renderable, secoundMesh: Renderable, allHitboxes: MutableList<MutableList<Float>>, op: String, objList: MutableList<Renderable>, gateOrientation: Int, playerSpeed: Float) {
+    fun collision(firstMesh: Renderable, secoundMesh: Renderable, op: String, playerSpeed: Float) {
 
         val xHitbox = mutableListOf(0f, 0f)
         val zHitbox = mutableListOf(0f, 0f)
-        var count = 0
-        var count2 = 0
+        var countFirstMesh = 0
+        var countSecoundMesh = 0
         var skip = false
 
-        for (x in objList) {
+        for (x in cpyObjList) {
             /** horizontal Walls (walls - wallsBig) */
-            if (x == firstMesh && (count in 0..94 || count in 196..225)) {
-                xHitbox[0] = allHitboxes[0][0]
-                zHitbox[0] = allHitboxes[0][1]
+            if (x == firstMesh && (countFirstMesh in 0..94 || countFirstMesh in 196..225)) {
+                xHitbox[0] = cpyAllHitboxes[0][0]
+                zHitbox[0] = cpyAllHitboxes[0][1]
             }
-            if (x == secoundMesh && (count2 in 0..94 || count2 in 196..225) && op == "solid") {
-                xHitbox[1] = allHitboxes[0][0]
-                zHitbox[1] = allHitboxes[0][1]
+            if (x == secoundMesh && (countSecoundMesh in 0..94 || countSecoundMesh in 196..225) && op == "solid") {
+                xHitbox[1] = cpyAllHitboxes[0][0]
+                zHitbox[1] = cpyAllHitboxes[0][1]
             }
             /** vertical walls (walls - wallsBig) */
-            if (x == firstMesh && (count in 95..195 || count in 226..267)) {
-                xHitbox[0] = allHitboxes[1][0]
-                zHitbox[0] = allHitboxes[1][1]
+            if (x == firstMesh && (countFirstMesh in 95..195 || countFirstMesh in 226..267)) {
+                xHitbox[0] = cpyAllHitboxes[1][0]
+                zHitbox[0] = cpyAllHitboxes[1][1]
             }
-            if (x == secoundMesh && (count2 in 95..195 || count2 in 226..267) && op == "solid") {
-                xHitbox[1] = allHitboxes[1][0]
-                zHitbox[1] = allHitboxes[1][1]
+            if (x == secoundMesh && (countSecoundMesh in 95..195 || countSecoundMesh in 226..267) && op == "solid") {
+                xHitbox[1] = cpyAllHitboxes[1][0]
+                zHitbox[1] = cpyAllHitboxes[1][1]
             }
             /** pillars and pillarsBig */
-            if (x == firstMesh && count in 268..467) {
-                xHitbox[0] = allHitboxes[2][0]
-                zHitbox[0] = allHitboxes[2][1]
+            if (x == firstMesh && countFirstMesh in 268..467) {
+                xHitbox[0] = cpyAllHitboxes[2][0]
+                zHitbox[0] = cpyAllHitboxes[2][1]
             }
-            if (x == secoundMesh && count2 in 268..467 && op == "solid") {
-                xHitbox[1] = allHitboxes[2][0]
-                zHitbox[1] = allHitboxes[2][1]
+            if (x == secoundMesh && countSecoundMesh in 268..467 && op == "solid") {
+                xHitbox[1] = cpyAllHitboxes[2][0]
+                zHitbox[1] = cpyAllHitboxes[2][1]
             }
             /** buttons */
-            if (x == firstMesh && count in 468..473) {
-                xHitbox[0] = allHitboxes[3][0]
-                zHitbox[0] = allHitboxes[3][1]
+            if (x == firstMesh && countFirstMesh in 468..473) {
+                xHitbox[0] = cpyAllHitboxes[3][0]
+                zHitbox[0] = cpyAllHitboxes[3][1]
             }
-            if (x == secoundMesh && count2 in 468..473 && op == "solid") {
-                xHitbox[1] = allHitboxes[3][0]
-                zHitbox[1] = allHitboxes[3][1]
+            if (x == secoundMesh && countSecoundMesh in 468..473 && op == "solid") {
+                xHitbox[1] = cpyAllHitboxes[3][0]
+                zHitbox[1] = cpyAllHitboxes[3][1]
             }
             /** doors */
-            if (x == firstMesh && count in 474..475) {
+            if (x == firstMesh && countFirstMesh in 474..475) {
                 if (gateOrientation == 0) {
-                    xHitbox[0] = allHitboxes[4][0]
-                    zHitbox[0] = allHitboxes[4][1]
+                    xHitbox[0] = cpyAllHitboxes[4][0]
+                    zHitbox[0] = cpyAllHitboxes[4][1]
                 } else {
-                    xHitbox[0] = allHitboxes[5][0]
-                    zHitbox[0] = allHitboxes[5][1]
+                    xHitbox[0] = cpyAllHitboxes[5][0]
+                    zHitbox[0] = cpyAllHitboxes[5][1]
                 }
             }
-            if (x == secoundMesh && count2 in 474..475 && op == "solid") {
+            if (x == secoundMesh && countSecoundMesh in 474..475 && op == "solid") {
                 if (gateOrientation == 0) {
-                    xHitbox[1] = allHitboxes[4][0]
-                    zHitbox[1] = allHitboxes[4][1]
+                    xHitbox[1] = cpyAllHitboxes[4][0]
+                    zHitbox[1] = cpyAllHitboxes[4][1]
                 } else {
-                    xHitbox[1] = allHitboxes[5][0]
-                    zHitbox[1] = allHitboxes[5][1]
+                    xHitbox[1] = cpyAllHitboxes[5][0]
+                    zHitbox[1] = cpyAllHitboxes[5][1]
                 }
             }
             /** monster */
-            if (x == firstMesh && count == 476) {
-                xHitbox[0] = allHitboxes[6][0]
-                zHitbox[0] = allHitboxes[6][1]
+            if (x == firstMesh && countFirstMesh == 476) {
+                xHitbox[0] = cpyAllHitboxes[6][0]
+                zHitbox[0] = cpyAllHitboxes[6][1]
             }
-            if (x == secoundMesh && count2 == 476 && op == "dead") {
-                xHitbox[1] = allHitboxes[6][0]
-                zHitbox[1] = allHitboxes[6][1]
+            if (x == secoundMesh && countSecoundMesh == 476 && op == "dead") {
+                xHitbox[1] = cpyAllHitboxes[6][0]
+                zHitbox[1] = cpyAllHitboxes[6][1]
             }
             /** player */
-            if (x == firstMesh && count == 477) {
-                xHitbox[0] = allHitboxes[7][0]
-                zHitbox[0] = allHitboxes[7][1]
+            if (x == firstMesh && countFirstMesh == 477) {
+                xHitbox[0] = cpyAllHitboxes[7][0]
+                zHitbox[0] = cpyAllHitboxes[7][1]
             }
+            /** portal */
+            if (x == firstMesh && countFirstMesh == 482 && op == "gameOver") {
+                if (portalOrientation == 0) {
+                    xHitbox[0] = cpyAllHitboxes[8][0]
+                    zHitbox[0] = cpyAllHitboxes[8][1]
+                } else {
+                    xHitbox[0] = cpyAllHitboxes[9][0]
+                    zHitbox[0] = cpyAllHitboxes[9][1]
+                }
+            }
+            /** horizontal dungeonWalls */
+            if (x == secoundMesh && (countSecoundMesh in 485..486) && op == "solid") {
+                xHitbox[1] = cpyAllHitboxes[0][0]
+                zHitbox[1] = cpyAllHitboxes[0][1]
+            }
+            /** vertical dungeonWalls */
+            if (x == secoundMesh && (countSecoundMesh in 487..488) && op == "solid") {
+                xHitbox[1] = cpyAllHitboxes[1][0]
+                zHitbox[1] = cpyAllHitboxes[1][1]
+            }
+
             /** objects without hitbox: player, gate, floor, skybox */
-            if (x == secoundMesh && count2 in 478..481) {
+            if (x == secoundMesh && countSecoundMesh in 478..484) {
                 skip = true
             }
-            count++
-            count2++
+            countFirstMesh++
+            countSecoundMesh++
         }
 
         /** Collision-Test */
@@ -397,180 +473,424 @@ class Labyrinth {
             if (!worldXPLus) {
                 when(op) {
                     "solid" -> firstMesh.translateGlobal(Vector3f(-playerSpeed, 0.0f, 0.0f))
-                    "dead" -> portTo(objList[477], objList[481], "z+")
+                    "dead" -> portTo(cpyObjList[477], cpyObjList[481], "z+")
+                    "gameOver" -> {
+                        cpyCamera.parent = cpyObjList[483]
+                        gameOver = true
+                    }
                 }
             }
             if (!worldXMinus) {
                 when(op) {
                     "solid" -> firstMesh.translateGlobal(Vector3f(playerSpeed, 0.0f, 0.0f))
-                    "dead" -> portTo(objList[477], objList[481], "z+")
+                    "dead" -> portTo(cpyObjList[477], cpyObjList[481], "z+")
+                    "gameOver" -> {
+                        cpyCamera.parent = cpyObjList[483]
+                        gameOver = true
+                    }
                 }
             }
             if (!worldZPlus) {
                 when(op) {
                     "solid" -> firstMesh.translateGlobal(Vector3f(0.0f, 0.0f, -playerSpeed))
-                    "dead" -> portTo(objList[477], objList[481], "z+")
+                    "dead" -> portTo(cpyObjList[477], cpyObjList[481], "z+")
+                    "gameOver" -> {
+                        cpyCamera.parent = cpyObjList[483]
+                        gameOver = true
+                    }
                 }
             }
             if (!worldZMinus) {
                 when(op) {
                     "solid" -> firstMesh.translateGlobal(Vector3f(0.0f, 0.0f, playerSpeed))
-                    "dead" -> portTo(objList[477], objList[481], "z+")
+                    "dead" -> portTo(cpyObjList[477], cpyObjList[481], "z+")
+                    "gameOver" -> {
+                        cpyCamera.parent = cpyObjList[483]
+                        gameOver = true
+                    }
                 }
             }
         }
     }
 
-    fun wayOfDeathAndDecay(monster: Renderable, routePosition: MutableList<Vector3f>, routeRotatePosition: MutableList<Vector3f>, rnd: Int) {
+    fun labyrinthInformation(objList: MutableList<Renderable>, allHitboxes: MutableList<MutableList<Float>>, camera: TronCamera, ghostWalkSpeed: Float, ghostCornerSpeed: Float) {
+        cpyObjList = objList
+        cpyAllHitboxes = allHitboxes
+        cpyCamera = camera
+        cpyGhostWalkSpeed = ghostWalkSpeed
+        cpyGhostCornerSpeed = ghostCornerSpeed
+    }
+
+    fun wayOfDeathAndDecay(rnd: Int) {
+
+        for (x in 0..30) {
+            routePosition.add(phVector3f)
+            routeRotatePosition.add(phVector3f)
+        }
 
         when (rnd) {
             1 -> {
-                monster.translateGlobal(Vector3f(60f, 0f, -4f))
-                routePosition[0] = monster.getWorldPosition()
-                monster.translateGlobal(Vector3f(0f, 0f, 12f))
-                routePosition[1] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(60f, 0f, -4f))
+                routePosition[0] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 12f))
+                routePosition[1] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(4f, 0f, 0f))
-                routeRotatePosition[0] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routeRotatePosition[0] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(0f, 0f, 4f))
-                routePosition[2] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routePosition[2] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(0f, 0f, 4f))
-                routeRotatePosition[1] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routeRotatePosition[1] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(0f, 0f, 4f))
-                routePosition[3] = monster.getWorldPosition()
-                monster.translateGlobal(Vector3f(-8f, 0f, 0f))
-                routePosition[4] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routePosition[3] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(-8f, 0f, 0f))
+                routePosition[4] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(0f, 0f, 4f))
-                routeRotatePosition[2] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routeRotatePosition[2] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(-4f, 0f, 0f))
-                routePosition[5] = monster.getWorldPosition()
-                monster.translateGlobal(Vector3f(0f, 0f, 8f))
-                routePosition[6] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(-4f, 0f, 0f))
+                routePosition[5] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 8f))
+                routePosition[6] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(-4f, 0f, 0f))
-                routeRotatePosition[3] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(-4f, 0f, 0f))
+                routeRotatePosition[3] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(0f, 0f, 4f))
-                routePosition[7] = monster.getWorldPosition()
-                monster.translateGlobal(Vector3f(-8f, 0f, 0f))
-                routePosition[8] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routePosition[7] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(-8f, 0f, 0f))
+                routePosition[8] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(0f, 0f, 4f))
-                routeRotatePosition[4] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routeRotatePosition[4] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(-4f, 0f, 0f))
-                routePosition[9] = monster.getWorldPosition()
-                monster.translateGlobal(Vector3f(0f, 0f, 40f))
-                routePosition[10] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(-4f, 0f, 0f))
+                routePosition[9] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 40f))
+                routePosition[10] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(4f, 0f, 0f))
-                routeRotatePosition[5] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routeRotatePosition[5] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(0f, 0f, 4f))
-                routePosition[11] = monster.getWorldPosition()
-                monster.translateGlobal(Vector3f(16f, 0f, 0f))
-                routePosition[12] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routePosition[11] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(16f, 0f, 0f))
+                routePosition[12] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(0f, 0f, -4f))
-                routeRotatePosition[6] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routeRotatePosition[6] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(4f, 0f, 0f))
-                routePosition[13] = monster.getWorldPosition()
-                monster.translateGlobal(Vector3f(0f, 0f, -24f))
-                routePosition[14] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routePosition[13] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -24f))
+                routePosition[14] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(4f, 0f, 0f))
-                routeRotatePosition[7] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routeRotatePosition[7] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(0f, 0f, -4f))
-                routePosition[15] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routePosition[15] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(0f, 0f, -4f))
-                routeRotatePosition[8] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routeRotatePosition[8] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(4f, 0f, 0f))
-                routePosition[16] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routePosition[16] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(4f, 0f, 0f))
-                routeRotatePosition[9] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routeRotatePosition[9] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(0f, 0f, -4f))
-                routePosition[17] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routePosition[17] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(0f, 0f, -4f))
-                routeRotatePosition[10] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routeRotatePosition[10] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(4f, 0f, 0f))
-                routePosition[18] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routePosition[18] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(4f, 0f, 0f))
-                routeRotatePosition[11] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routeRotatePosition[11] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(0f, 0f, -4f))
-                routePosition[19] = monster.getWorldPosition()
-                monster.translateGlobal(Vector3f(24f, 0f, 0f))
-                routePosition[20] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routePosition[19] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(24f, 0f, 0f))
+                routePosition[20] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(0f, 0f, -4f))
-                routeRotatePosition[12] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routeRotatePosition[12] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(4f, 0f, 0f))
-                routePosition[21] = monster.getWorldPosition()
-                monster.translateGlobal(Vector3f(0f, 0f, -8f))
-                routePosition[22] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routePosition[21] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -8f))
+                routePosition[22] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(-4f, 0f, 0f))
-                routeRotatePosition[13] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(-4f, 0f, 0f))
+                routeRotatePosition[13] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(0f, 0f, -4f))
-                routePosition[23] = monster.getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routePosition[23] = cpyObjList[476].getWorldPosition()
 
-                monster.translateGlobal(Vector3f(-44f, 0f, -24f))
+                cpyObjList[476].translateGlobal(Vector3f(-44f, 0f, -24f))
             }
             2 -> {
+                cpyObjList[476].translateGlobal(Vector3f(60f, 0f, 124f))
+                routePosition[0] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -20f))
+                routePosition[1] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(-4f, 0f, 0f))
+                routeRotatePosition[0] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
 
+                routePosition[2] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(-24f, 0f, 0f))
+                routePosition[3] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routeRotatePosition[1] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(-4f, 0f, 0f))
+                routePosition[4] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -32f))
+                routePosition[5] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routeRotatePosition[2] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routePosition[6] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(16f, 0f, 0f))
+                routePosition[7] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routeRotatePosition[3] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routePosition[8] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -16f))
+                routePosition[9] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routeRotatePosition[4] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routePosition[10] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(40f, 0f, 0f))
+                routePosition[11] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routeRotatePosition[5] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routePosition[12] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 16f))
+                routePosition[13] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(-4f, 0f, 0f))
+                routeRotatePosition[6] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routePosition[14] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(-16f, 0f, 0f))
+                routePosition[15] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routeRotatePosition[7] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(-4f, 0f, 0f))
+                routePosition[16] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 32f))
+                routePosition[17] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(-4f, 0f, 0f))
+                routeRotatePosition[8] = cpyObjList[476].getWorldPosition()
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routePosition[18] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(-12f, 0f, 24f))
+                cpyObjList[476].rotateLocal(0f, Math.toRadians(180f), 0f)
             }
             3 -> {
+                cpyObjList[476].translateGlobal(Vector3f(-4f, 0f, 60f))
+                routePosition[0] = cpyObjList[476].getWorldPosition()
 
+                cpyObjList[476].translateGlobal(Vector3f(28f, 0f, 0f))
+                routePosition[1] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routeRotatePosition[0] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routePosition[2] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -24f))
+                routePosition[3] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routeRotatePosition[1] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routePosition[4] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(32f, 0f, 0f))
+                routePosition[5] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routeRotatePosition[2] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routePosition[6] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -8f))
+                routePosition[7] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routeRotatePosition[3] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routePosition[8] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(24f, 0f, 0f))
+                routePosition[9] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routeRotatePosition[4] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routePosition[10] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 80f))
+                routePosition[11] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(-4f, 0f, 0f))
+                routeRotatePosition[5] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routePosition[12] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(-64f, 0f, 0f))
+                routePosition[13] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routeRotatePosition[6] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(-4f, 0f, 0f))
+                routePosition[14] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(-32f, 0f, -36f))
+                cpyObjList[476].rotateLocal(0f, Math.toRadians(90f), 0f)
             }
             4 -> {
+                cpyObjList[476].translateGlobal(Vector3f(124f, 0f, 60f))
+                routePosition[0] = cpyObjList[476].getWorldPosition()
 
+                cpyObjList[476].translateGlobal(Vector3f(-20f, 0f, 0f))
+                routePosition[1] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routeRotatePosition[0] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(-4f, 0f, 0f))
+                routePosition[2] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 24f))
+                routePosition[3] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routeRotatePosition[1] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routePosition[3] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routeRotatePosition[2] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routePosition[5] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 8f))
+                routePosition[6] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(-4f, 0f, 0f))
+                routeRotatePosition[3] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routePosition[7] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(-80f, 0f, 0f))
+                routePosition[8] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routeRotatePosition[4] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(-4f, 0f, 0f))
+                routePosition[9] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -16f))
+                routePosition[10] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routeRotatePosition[5] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routePosition[11] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(32f, 0f, 0f))
+                routePosition[12] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routeRotatePosition[6] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routePosition[13] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -56f))
+                routePosition[14] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routeRotatePosition[7] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, -4f))
+                routePosition[15] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(32f, 0f, 0f))
+                routePosition[16] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(0f, 0f, 4f))
+                routeRotatePosition[8] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(4f, 0f, 0f))
+                routePosition[17] = cpyObjList[476].getWorldPosition()
+
+                cpyObjList[476].translateGlobal(Vector3f(24f, 0f, 36f))
+                cpyObjList[476].rotateLocal(0f, Math.toRadians(-90f), 0f)
             }
         }
     }
 
-    fun buttonSpawn(buttons: MutableList<Renderable>, buttonBases: MutableList<Renderable>, rnd: Int): MutableList<Vector3f> {
+    fun buttonSpawn(rnd: Int): MutableList<Vector3f> {
 
         val buttonPositions = mutableListOf<Vector3f>()
 
         when(rnd) {
             1 -> {
-                buttons[0].translateGlobal(Vector3f(84f, 0f, 9f))
-                buttonBases[0].translateGlobal(Vector3f(84f, 0f, 9f))
+                cpyObjList[468].translateGlobal(Vector3f(84f, 0f, 9f))
+                cpyObjList[471].translateGlobal(Vector3f(84f, 0f, 9f))
 
-                buttons[1].translateGlobal(Vector3f(116f, 0f, 81f))
-                buttonBases[1].translateGlobal(Vector3f(116f, 0f, 81f))
+                cpyObjList[469].translateGlobal(Vector3f(116f, 0f, 81f))
+                cpyObjList[472].translateGlobal(Vector3f(116f, 0f, 81f))
 
-                buttons[2].translateGlobal(Vector3f(4f, 0f, 89f))
-                buttonBases[2].translateGlobal(Vector3f(4f, 0f, 89f))
+                cpyObjList[470].translateGlobal(Vector3f(4f, 0f, 89f))
+                cpyObjList[473].translateGlobal(Vector3f(4f, 0f, 89f))
 
-                val firstButtonFP = buttons[0].getWorldPosition()
-                val secoundButtonFP = buttons[1].getWorldPosition()
-                val thirdButtonFP = buttons[2].getWorldPosition()
-                buttons[0].translateGlobal(Vector3f(0f, 0f, -0.2f))
-                buttons[1].translateGlobal(Vector3f(0f, 0f, -0.2f))
-                buttons[2].translateGlobal(Vector3f(0f, 0f, -0.2f))
-                val firstButtonBP = buttons[0].getWorldPosition()
-                val secoundButtonBP = buttons[1].getWorldPosition()
-                val thirdButtonBP = buttons[2].getWorldPosition()
-                buttons[0].translateGlobal(Vector3f(0f, 0f, 0.2f))
-                buttons[1].translateGlobal(Vector3f(0f, 0f, 0.2f))
-                buttons[2].translateGlobal(Vector3f(0f, 0f, 0.2f))
+                val firstButtonFP = cpyObjList[468].getWorldPosition()
+                val secoundButtonFP = cpyObjList[469].getWorldPosition()
+                val thirdButtonFP = cpyObjList[470].getWorldPosition()
+                cpyObjList[468].translateGlobal(Vector3f(0f, 0f, -0.2f))
+                cpyObjList[469].translateGlobal(Vector3f(0f, 0f, -0.2f))
+                cpyObjList[470].translateGlobal(Vector3f(0f, 0f, -0.2f))
+                val firstButtonBP = cpyObjList[468].getWorldPosition()
+                val secoundButtonBP = cpyObjList[469].getWorldPosition()
+                val thirdButtonBP = cpyObjList[470].getWorldPosition()
+                cpyObjList[468].translateGlobal(Vector3f(0f, 0f, 0.2f))
+                cpyObjList[469].translateGlobal(Vector3f(0f, 0f, 0.2f))
+                cpyObjList[470].translateGlobal(Vector3f(0f, 0f, 0.2f))
 
                 buttonPositions.add(firstButtonFP)
                 buttonPositions.add(secoundButtonFP)
@@ -580,27 +900,27 @@ class Labyrinth {
                 buttonPositions.add(thirdButtonBP)
             }
             2 -> {
-                buttons[0].translateGlobal(Vector3f(20f, 0f, 41f))
-                buttonBases[0].translateGlobal(Vector3f(20f, 0f, 41f))
+                cpyObjList[468].translateGlobal(Vector3f(20f, 0f, 41f))
+                cpyObjList[471].translateGlobal(Vector3f(20f, 0f, 41f))
 
-                buttons[1].translateGlobal(Vector3f(114f, 0f, 1f))
-                buttonBases[1].translateGlobal(Vector3f(114f, 0f, 1f))
+                cpyObjList[469].translateGlobal(Vector3f(114f, 0f, 1f))
+                cpyObjList[472].translateGlobal(Vector3f(114f, 0f, 1f))
 
-                buttons[2].translateGlobal(Vector3f(68f, 0f, 97f))
-                buttonBases[2].translateGlobal(Vector3f(68f, 0f, 97f))
+                cpyObjList[470].translateGlobal(Vector3f(68f, 0f, 97f))
+                cpyObjList[473].translateGlobal(Vector3f(68f, 0f, 97f))
 
-                val firstButtonFP = buttons[0].getWorldPosition()
-                val secoundButtonFP = buttons[1].getWorldPosition()
-                val thirdButtonFP = buttons[2].getWorldPosition()
-                buttons[0].translateGlobal(Vector3f(0f, 0f, -0.2f))
-                buttons[1].translateGlobal(Vector3f(0f, 0f, -0.2f))
-                buttons[2].translateGlobal(Vector3f(0f, 0f, -0.2f))
-                val firstButtonBP = buttons[0].getWorldPosition()
-                val secoundButtonBP = buttons[1].getWorldPosition()
-                val thirdButtonBP = buttons[2].getWorldPosition()
-                buttons[0].translateGlobal(Vector3f(0f, 0f, 0.2f))
-                buttons[1].translateGlobal(Vector3f(0f, 0f, 0.2f))
-                buttons[2].translateGlobal(Vector3f(0f, 0f, 0.2f))
+                val firstButtonFP = cpyObjList[468].getWorldPosition()
+                val secoundButtonFP = cpyObjList[469].getWorldPosition()
+                val thirdButtonFP = cpyObjList[470].getWorldPosition()
+                cpyObjList[468].translateGlobal(Vector3f(0f, 0f, -0.2f))
+                cpyObjList[469].translateGlobal(Vector3f(0f, 0f, -0.2f))
+                cpyObjList[470].translateGlobal(Vector3f(0f, 0f, -0.2f))
+                val firstButtonBP = cpyObjList[468].getWorldPosition()
+                val secoundButtonBP = cpyObjList[469].getWorldPosition()
+                val thirdButtonBP = cpyObjList[470].getWorldPosition()
+                cpyObjList[468].translateGlobal(Vector3f(0f, 0f, 0.2f))
+                cpyObjList[469].translateGlobal(Vector3f(0f, 0f, 0.2f))
+                cpyObjList[470].translateGlobal(Vector3f(0f, 0f, 0.2f))
 
                 buttonPositions.add(firstButtonFP)
                 buttonPositions.add(secoundButtonFP)
@@ -610,33 +930,35 @@ class Labyrinth {
                 buttonPositions.add(thirdButtonBP)
             }
             3 -> {
-                buttons[0].rotateLocal(0f, Math.toRadians(90f), 0f)
-                buttons[0].translateGlobal(Vector3f(65f, 0f, 4f))
-                buttonBases[0].rotateLocal(0f, Math.toRadians(90f), 0f)
-                buttonBases[0].translateGlobal(Vector3f(65f, 0f, 4f))
+                buttonOrientation = 1
 
-                buttons[1].rotateLocal(0f, Math.toRadians(90f), 0f)
-                buttons[1].translateGlobal(Vector3f(17f, 0f, 28f))
-                buttonBases[1].rotateLocal(0f, Math.toRadians(90f), 0f)
-                buttonBases[1].translateGlobal(Vector3f(17f, 0f, 28f))
+                cpyObjList[468].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[468].translateGlobal(Vector3f(65f, 0f, 4f))
+                cpyObjList[471].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[471].translateGlobal(Vector3f(65f, 0f, 4f))
 
-                buttons[2].rotateLocal(0f, Math.toRadians(90f), 0f)
-                buttons[2].translateGlobal(Vector3f(81f, 0f, 84f))
-                buttonBases[2].rotateLocal(0f, Math.toRadians(90f), 0f)
-                buttonBases[2].translateGlobal(Vector3f(81f, 0f, 84f))
+                cpyObjList[469].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[469].translateGlobal(Vector3f(17f, 0f, 28f))
+                cpyObjList[472].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[472].translateGlobal(Vector3f(17f, 0f, 28f))
 
-                val firstButtonFP = buttons[0].getWorldPosition()
-                val secoundButtonFP = buttons[1].getWorldPosition()
-                val thirdButtonFP = buttons[2].getWorldPosition()
-                buttons[0].translateGlobal(Vector3f(-0.2f, 0f, 0f))
-                buttons[1].translateGlobal(Vector3f(-0.2f, 0f, 0f))
-                buttons[2].translateGlobal(Vector3f(-0.2f, 0f, 0f))
-                val firstButtonBP = buttons[0].getWorldPosition()
-                val secoundButtonBP = buttons[1].getWorldPosition()
-                val thirdButtonBP = buttons[2].getWorldPosition()
-                buttons[0].translateGlobal(Vector3f(0.2f, 0f, 0f))
-                buttons[1].translateGlobal(Vector3f(0.2f, 0f, 0f))
-                buttons[2].translateGlobal(Vector3f(0.2f, 0f, 0f))
+                cpyObjList[470].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[470].translateGlobal(Vector3f(81f, 0f, 84f))
+                cpyObjList[473].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[473].translateGlobal(Vector3f(81f, 0f, 84f))
+
+                val firstButtonFP = cpyObjList[468].getWorldPosition()
+                val secoundButtonFP = cpyObjList[469].getWorldPosition()
+                val thirdButtonFP = cpyObjList[470].getWorldPosition()
+                cpyObjList[468].translateGlobal(Vector3f(-0.2f, 0f, 0f))
+                cpyObjList[469].translateGlobal(Vector3f(-0.2f, 0f, 0f))
+                cpyObjList[470].translateGlobal(Vector3f(-0.2f, 0f, 0f))
+                val firstButtonBP = cpyObjList[468].getWorldPosition()
+                val secoundButtonBP = cpyObjList[469].getWorldPosition()
+                val thirdButtonBP = cpyObjList[470].getWorldPosition()
+                cpyObjList[468].translateGlobal(Vector3f(0.2f, 0f, 0f))
+                cpyObjList[469].translateGlobal(Vector3f(0.2f, 0f, 0f))
+                cpyObjList[470].translateGlobal(Vector3f(0.2f, 0f, 0f))
 
                 buttonPositions.add(firstButtonFP)
                 buttonPositions.add(secoundButtonFP)
@@ -646,33 +968,35 @@ class Labyrinth {
                 buttonPositions.add(thirdButtonBP)
             }
             4 -> {
-                buttons[0].rotateLocal(0f, Math.toRadians(90f), 0f)
-                buttons[0].translateGlobal(Vector3f(97f, 0f, 12f))
-                buttonBases[0].rotateLocal(0f, Math.toRadians(90f), 0f)
-                buttonBases[0].translateGlobal(Vector3f(97f, 0f, 12f))
+                buttonOrientation = 1
 
-                buttons[1].rotateLocal(0f, Math.toRadians(90f), 0f)
-                buttons[1].translateGlobal(Vector3f(9f, 0f, 76f))
-                buttonBases[1].rotateLocal(0f, Math.toRadians(90f), 0f)
-                buttonBases[1].translateGlobal(Vector3f(9f, 0f, 76f))
+                cpyObjList[468].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[468].translateGlobal(Vector3f(97f, 0f, 12f))
+                cpyObjList[471].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[471].translateGlobal(Vector3f(97f, 0f, 12f))
 
-                buttons[2].rotateLocal(0f, Math.toRadians(90f), 0f)
-                buttons[2].translateGlobal(Vector3f(105f, 0f, 116f))
-                buttonBases[2].rotateLocal(0f, Math.toRadians(90f), 0f)
-                buttonBases[2].translateGlobal(Vector3f(105f, 0f, 116f))
+                cpyObjList[469].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[469].translateGlobal(Vector3f(9f, 0f, 76f))
+                cpyObjList[472].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[472].translateGlobal(Vector3f(9f, 0f, 76f))
 
-                val firstButtonFP = buttons[0].getWorldPosition()
-                val secoundButtonFP = buttons[1].getWorldPosition()
-                val thirdButtonFP = buttons[2].getWorldPosition()
-                buttons[0].translateGlobal(Vector3f(-0.2f, 0f, 0f))
-                buttons[1].translateGlobal(Vector3f(-0.2f, 0f, 0f))
-                buttons[2].translateGlobal(Vector3f(-0.2f, 0f, 0f))
-                val firstButtonBP = buttons[0].getWorldPosition()
-                val secoundButtonBP = buttons[1].getWorldPosition()
-                val thirdButtonBP = buttons[2].getWorldPosition()
-                buttons[0].translateGlobal(Vector3f(0.2f, 0f, 0f))
-                buttons[1].translateGlobal(Vector3f(0.2f, 0f, 0f))
-                buttons[2].translateGlobal(Vector3f(0.2f, 0f, 0f))
+                cpyObjList[470].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[470].translateGlobal(Vector3f(105f, 0f, 116f))
+                cpyObjList[473].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[473].translateGlobal(Vector3f(105f, 0f, 116f))
+
+                val firstButtonFP = cpyObjList[468].getWorldPosition()
+                val secoundButtonFP = cpyObjList[469].getWorldPosition()
+                val thirdButtonFP = cpyObjList[470].getWorldPosition()
+                cpyObjList[468].translateGlobal(Vector3f(-0.2f, 0f, 0f))
+                cpyObjList[469].translateGlobal(Vector3f(-0.2f, 0f, 0f))
+                cpyObjList[470].translateGlobal(Vector3f(-0.2f, 0f, 0f))
+                val firstButtonBP = cpyObjList[468].getWorldPosition()
+                val secoundButtonBP = cpyObjList[469].getWorldPosition()
+                val thirdButtonBP = cpyObjList[470].getWorldPosition()
+                cpyObjList[468].translateGlobal(Vector3f(0.2f, 0f, 0f))
+                cpyObjList[469].translateGlobal(Vector3f(0.2f, 0f, 0f))
+                cpyObjList[470].translateGlobal(Vector3f(0.2f, 0f, 0f))
 
                 buttonPositions.add(firstButtonFP)
                 buttonPositions.add(secoundButtonFP)
@@ -685,27 +1009,32 @@ class Labyrinth {
         return buttonPositions
     }
 
-    fun doorSpawn (gate: Renderable, gateDoors: MutableList<Renderable>, firstCameraPosition: Renderable, rnd: Int): MutableList<Vector3f> {
+    fun doorSpawn (rnd: Int): MutableList<Vector3f> {
 
         val returnValues = mutableListOf<Vector3f>()
 
         when(rnd) {
             1 -> {
-                gate.translateGlobal(Vector3f(60f, 0f, 0f))
-                firstCameraPosition.rotateLocal(Math.toRadians(-15f), 0f, 0f)
-                firstCameraPosition.translateGlobal(Vector3f(60f, -4f, 10f))
+                wallDespawn = 7
 
-                gateDoors[0].translateGlobal(Vector3f(58f, 0f, 0f))
-                gateDoors[1].translateGlobal(Vector3f(62f, 0f, 0f))
+                cpyObjList[478].translateGlobal(Vector3f(60f, 0f, 0f))
 
-                val gateDoorLC = gateDoors[0].getWorldPosition()
-                val gateDoorRC = gateDoors[1].getWorldPosition()
-                gateDoors[0].translateGlobal(Vector3f(-2f, 0f, 0f))
-                gateDoors[1].translateGlobal(Vector3f(2f, 0f, 0f))
-                val gateDoorLO = gateDoors[0].getWorldPosition()
-                val gateDoorRO = gateDoors[1].getWorldPosition()
-                gateDoors[0].translateGlobal(Vector3f(2f, 0f, 0f))
-                gateDoors[1].translateGlobal(Vector3f(-2f, 0f, 0f))
+                cpyObjList[482].translateGlobal(Vector3f(60f, 0f, -4f))
+
+                cpyObjList[474].translateGlobal(Vector3f(58f, 0f, 0f))
+                cpyObjList[475].translateGlobal(Vector3f(62f, 0f, 0f))
+
+                cpyObjList[484].rotateLocal(Math.toRadians(-15f), 0f, 0f)
+                cpyObjList[484].translateGlobal(Vector3f(60f, -4f, 10f))
+
+                val gateDoorLC = cpyObjList[474].getWorldPosition()
+                val gateDoorRC = cpyObjList[475].getWorldPosition()
+                cpyObjList[474].translateGlobal(Vector3f(-2f, 0f, 0f))
+                cpyObjList[475].translateGlobal(Vector3f(2f, 0f, 0f))
+                val gateDoorLO = cpyObjList[474].getWorldPosition()
+                val gateDoorRO = cpyObjList[475].getWorldPosition()
+                cpyObjList[474].translateGlobal(Vector3f(2f, 0f, 0f))
+                cpyObjList[475].translateGlobal(Vector3f(-2f, 0f, 0f))
 
                 returnValues.add(gateDoorLC)
                 returnValues.add(gateDoorRC)
@@ -713,22 +1042,28 @@ class Labyrinth {
                 returnValues.add(gateDoorRO)
             }
             2 -> {
-                gate.translateGlobal(Vector3f(60f, 0f, 120f))
-                firstCameraPosition.rotateLocal(0f, Math.toRadians(180f), 0f)
-                firstCameraPosition.rotateLocal(Math.toRadians(-15f), 0f, 0f)
-                firstCameraPosition.translateGlobal(Vector3f(60f, -4f, 106f))
+                wallDespawn = 22
 
-                gateDoors[0].translateGlobal(Vector3f(58f, 0f, 120f))
-                gateDoors[1].translateGlobal(Vector3f(62f, 0f, 120f))
+                cpyObjList[478].translateGlobal(Vector3f(60f, 0f, 120f))
 
-                val gateDoorLC = gateDoors[0].getWorldPosition()
-                val gateDoorRC = gateDoors[1].getWorldPosition()
-                gateDoors[0].translateGlobal(Vector3f(-2f, 0f, 0f))
-                gateDoors[1].translateGlobal(Vector3f(2f, 0f, 0f))
-                val gateDoorLO = gateDoors[0].getWorldPosition()
-                val gateDoorRO = gateDoors[1].getWorldPosition()
-                gateDoors[0].translateGlobal(Vector3f(2f, 0f, 0f))
-                gateDoors[1].translateGlobal(Vector3f(-2f, 0f, 0f))
+                cpyObjList[482].rotateLocal(0f, Math.toRadians(180f), 0f)
+                cpyObjList[482].translateGlobal(Vector3f(60f, 0f, 124f))
+
+                cpyObjList[474].translateGlobal(Vector3f(58f, 0f, 120f))
+                cpyObjList[475].translateGlobal(Vector3f(62f, 0f, 120f))
+
+                cpyObjList[484].rotateLocal(0f, Math.toRadians(180f), 0f)
+                cpyObjList[484].rotateLocal(Math.toRadians(-15f), 0f, 0f)
+                cpyObjList[484].translateGlobal(Vector3f(60f, -4f, 106f))
+
+                val gateDoorLC = cpyObjList[474].getWorldPosition()
+                val gateDoorRC = cpyObjList[475].getWorldPosition()
+                cpyObjList[474].translateGlobal(Vector3f(-2f, 0f, 0f))
+                cpyObjList[475].translateGlobal(Vector3f(2f, 0f, 0f))
+                val gateDoorLO = cpyObjList[474].getWorldPosition()
+                val gateDoorRO = cpyObjList[475].getWorldPosition()
+                cpyObjList[474].translateGlobal(Vector3f(2f, 0f, 0f))
+                cpyObjList[475].translateGlobal(Vector3f(-2f, 0f, 0f))
 
                 returnValues.add(gateDoorLC)
                 returnValues.add(gateDoorRC)
@@ -736,25 +1071,33 @@ class Labyrinth {
                 returnValues.add(gateDoorRO)
             }
             3 -> {
-                gate.rotateLocal(0f, Math.toRadians(90f), 0f)
-                gate.translateGlobal(Vector3f(0f, 0f, 60f))
-                firstCameraPosition.rotateLocal(0f, Math.toRadians(90f), 0f)
-                firstCameraPosition.rotateLocal(Math.toRadians(-15f), 0f, 0f)
-                firstCameraPosition.translateGlobal(Vector3f(10f, -4f, 60f))
+                wallDespawn = 37
+                gateOrientation = 1
+                portalOrientation = 1
 
-                gateDoors[0].rotateLocal(0f, Math.toRadians(90f), 0f)
-                gateDoors[0].translateGlobal(Vector3f(0f, 0f, 58f))
-                gateDoors[1].rotateLocal(0f, Math.toRadians(90f), 0f)
-                gateDoors[1].translateGlobal(Vector3f(0f, 0f, 62f))
+                cpyObjList[478].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[478].translateGlobal(Vector3f(0f, 0f, 60f))
 
-                val gateDoorLC = gateDoors[0].getWorldPosition()
-                val gateDoorRC = gateDoors[1].getWorldPosition()
-                gateDoors[0].translateGlobal(Vector3f(0f, 0f, -2f))
-                gateDoors[1].translateGlobal(Vector3f(0f, 0f, 2f))
-                val gateDoorLO = gateDoors[0].getWorldPosition()
-                val gateDoorRO = gateDoors[1].getWorldPosition()
-                gateDoors[0].translateGlobal(Vector3f(0f, 0f, 2f))
-                gateDoors[1].translateGlobal(Vector3f(0f, 0f, -2f))
+                cpyObjList[482].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[482].translateGlobal(Vector3f(-4f, 0f, 60f))
+
+                cpyObjList[474].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[474].translateGlobal(Vector3f(0f, 0f, 58f))
+                cpyObjList[475].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[475].translateGlobal(Vector3f(0f, 0f, 62f))
+
+                cpyObjList[484].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[484].rotateLocal(Math.toRadians(-15f), 0f, 0f)
+                cpyObjList[484].translateGlobal(Vector3f(10f, -4f, 60f))
+
+                val gateDoorLC = cpyObjList[474].getWorldPosition()
+                val gateDoorRC = cpyObjList[475].getWorldPosition()
+                cpyObjList[474].translateGlobal(Vector3f(0f, 0f, -2f))
+                cpyObjList[475].translateGlobal(Vector3f(0f, 0f, 2f))
+                val gateDoorLO = cpyObjList[474].getWorldPosition()
+                val gateDoorRO = cpyObjList[475].getWorldPosition()
+                cpyObjList[474].translateGlobal(Vector3f(0f, 0f, 2f))
+                cpyObjList[475].translateGlobal(Vector3f(0f, 0f, -2f))
 
                 returnValues.add(gateDoorLC)
                 returnValues.add(gateDoorRC)
@@ -762,25 +1105,33 @@ class Labyrinth {
                 returnValues.add(gateDoorRO)
             }
             4 -> {
-                gate.rotateLocal(0f, Math.toRadians(90f), 0f)
-                gate.translateGlobal(Vector3f(120f, 0f, 60f))
-                firstCameraPosition.rotateLocal(0f, Math.toRadians(-90f), 0f)
-                firstCameraPosition.rotateLocal(Math.toRadians(-15f), 0f, 0f)
-                firstCameraPosition.translateGlobal(Vector3f(106f, -4f, 60f))
+                wallDespawn = 52
+                gateOrientation = 1
+                portalOrientation = 1
 
-                gateDoors[0].rotateLocal(0f, Math.toRadians(90f), 0f)
-                gateDoors[0].translateGlobal(Vector3f(120f, 0f, 58f))
-                gateDoors[1].rotateLocal(0f, Math.toRadians(90f), 0f)
-                gateDoors[1].translateGlobal(Vector3f(120f, 0f, 62f))
+                cpyObjList[478].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[478].translateGlobal(Vector3f(120f, 0f, 60f))
 
-                val gateDoorLC = gateDoors[0].getWorldPosition()
-                val gateDoorRC = gateDoors[1].getWorldPosition()
-                gateDoors[0].translateGlobal(Vector3f(0f, 0f, -2f))
-                gateDoors[1].translateGlobal(Vector3f(0f, 0f, 2f))
-                val gateDoorLO = gateDoors[0].getWorldPosition()
-                val gateDoorRO = gateDoors[1].getWorldPosition()
-                gateDoors[0].translateGlobal(Vector3f(0f, 0f, 2f))
-                gateDoors[1].translateGlobal(Vector3f(0f, 0f, -2f))
+                cpyObjList[482].rotateLocal(0f, Math.toRadians(-90f), 0f)
+                cpyObjList[482].translateGlobal(Vector3f(124f, 0f, 60f))
+
+                cpyObjList[474].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[474].translateGlobal(Vector3f(120f, 0f, 58f))
+                cpyObjList[475].rotateLocal(0f, Math.toRadians(90f), 0f)
+                cpyObjList[475].translateGlobal(Vector3f(120f, 0f, 62f))
+
+                cpyObjList[484].rotateLocal(0f, Math.toRadians(-90f), 0f)
+                cpyObjList[484].rotateLocal(Math.toRadians(-15f), 0f, 0f)
+                cpyObjList[484].translateGlobal(Vector3f(106f, -4f, 60f))
+
+                val gateDoorLC = cpyObjList[474].getWorldPosition()
+                val gateDoorRC = cpyObjList[475].getWorldPosition()
+                cpyObjList[474].translateGlobal(Vector3f(0f, 0f, -2f))
+                cpyObjList[475].translateGlobal(Vector3f(0f, 0f, 2f))
+                val gateDoorLO = cpyObjList[474].getWorldPosition()
+                val gateDoorRO = cpyObjList[475].getWorldPosition()
+                cpyObjList[474].translateGlobal(Vector3f(0f, 0f, 2f))
+                cpyObjList[475].translateGlobal(Vector3f(0f, 0f, -2f))
 
                 returnValues.add(gateDoorLC)
                 returnValues.add(gateDoorRC)
@@ -791,8 +1142,7 @@ class Labyrinth {
         return returnValues
     }
 
-    fun buildLabyrith(walls: MutableList<Renderable>, wallsBig: MutableList<Renderable>, pillars: MutableList<Renderable>, pillarsBig: MutableList<Renderable>, wallDespawn: Int) {
-
+    fun buildLabyrith(walls: MutableList<Renderable>, wallsBig: MutableList<Renderable>, pillars: MutableList<Renderable>, pillarsBig: MutableList<Renderable>) {
 
         wallsBig[0].translateGlobal(Vector3f(4f, 0f, 0f))
         wallsBig[1].translateGlobal(Vector3f(12f, 0f, 0f))
@@ -1120,6 +1470,17 @@ class Labyrinth {
         wallsBig[70].rotateLocal(0f, Math.toRadians(90f), 0f)
         wallsBig[70].translateGlobal(Vector3f(128f, 0f, 60f))
         wallsBig[71].translateGlobal(Vector3f(124f, 0f, 64f))
+
+        cpyObjList[481].translateGlobal(Vector3f(-200f, 0f, -200f))
+
+        cpyObjList[485].translateGlobal(Vector3f(-200f, 0f, -204f))
+        cpyObjList[486].translateGlobal(Vector3f(-200f, 0f, -196f))
+        cpyObjList[487].rotateLocal(0f, Math.toRadians(90f), 0f)
+        cpyObjList[487].translateGlobal(Vector3f(-204f, 0f, -200f))
+        cpyObjList[488].rotateLocal(0f, Math.toRadians(90f), 0f)
+        cpyObjList[488].translateGlobal(Vector3f(-196f, 0f, -200f))
+        cpyObjList[489].translateGlobal(Vector3f(-200f, 0f, -200f))
+
 
         var x = 8f
         var y = 8f
