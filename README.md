@@ -17,4 +17,7 @@ Mehrere Modelle<br>
 Interaktionsmöglichkeiten (Simple Animation, Statusabfrage)<br>
 Mehrstufige Transformationshierarchie<br>
 Cutscenes<br>
-
+Strafebewegung<br>
+Bewegung: WASD <br>
+Interaktion: E <br>
+Taschenlampe: F <br>
