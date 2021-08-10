@@ -2,19 +2,19 @@
 CGA Abschlussprojekt
 
 # Teammitglieder
-Tobias Mink,
-Marvin Kemper,
+Tobias Mink<br>
+Marvin Kemper<br>
 Gerald Grote-Lambers
 
 # Featureliste
--Charakterbewegung mit leichten Physiks
--Kollisionsermittlung
--Portfunktion
--Wechsel zwischen Dynamischer Kamera und Vogelperspektive
--Grafische Oberfläche mit Randomgenerator
--POV mit Taschenlampe
--Mehrere Modelle
--Interaktionsmöglichkeiten (Simple Animation, Statusabfrage)
--Mehrstufige Transformationshierarchie
--Cutscenes
+Charakterbewegung mit leichten Physiks<br>
+Kollisionsermittlung<br>
+Portfunktion<br>
+Wechsel zwischen Dynamischer Kamera und Vogelperspektive<br>
+Grafische Oberfläche mit Randomgenerator<br>
+POV mit Taschenlampe<br>
+Mehrere Modelle<br>
+Interaktionsmöglichkeiten (Simple Animation, Statusabfrage)<br>
+Mehrstufige Transformationshierarchie<br>
+Cutscenes<br>
 
