@@ -350,20 +350,20 @@ class Labyrinth {
 
         for (x in cpyObjList) {
             /** horizontal Walls (walls - wallsBig) */
-            if (x == firstMesh && (countFirstMesh in 0..94 || countFirstMesh in 196..225)) {
+            if (x == firstMesh && (countFirstMesh in 0..94 || countFirstMesh in 196..225 || countFirstMesh == 257 || countFirstMesh == 260 || countFirstMesh == 262 || countFirstMesh == 264 || countFirstMesh == 265 || countFirstMesh == 267)) {
                 xHitbox[0] = cpyAllHitboxes[0][0]
                 zHitbox[0] = cpyAllHitboxes[0][1]
             }
-            if (x == secoundMesh && (countSecoundMesh in 0..94 || countSecoundMesh in 196..225) && op == "solid") {
+            if (x == secoundMesh && (countSecoundMesh in 0..94 || countSecoundMesh in 196..225 || countFirstMesh == 257 || countFirstMesh == 260 || countFirstMesh == 262 || countFirstMesh == 264 || countFirstMesh == 265 || countFirstMesh == 267) && op == "solid") {
                 xHitbox[1] = cpyAllHitboxes[0][0]
                 zHitbox[1] = cpyAllHitboxes[0][1]
             }
             /** vertical walls (walls - wallsBig) */
-            if (x == firstMesh && (countFirstMesh in 95..195 || countFirstMesh in 226..267)) {
+            if (x == firstMesh && (countFirstMesh in 95..195 || countFirstMesh in 226..255 || countFirstMesh == 256 || countFirstMesh == 258 || countFirstMesh == 259 || countFirstMesh == 261 || countFirstMesh == 263 || countFirstMesh == 266)) {
                 xHitbox[0] = cpyAllHitboxes[1][0]
                 zHitbox[0] = cpyAllHitboxes[1][1]
             }
-            if (x == secoundMesh && (countSecoundMesh in 95..195 || countSecoundMesh in 226..267) && op == "solid") {
+            if (x == secoundMesh && (countSecoundMesh in 95..195 || countSecoundMesh in 226..255 || countFirstMesh == 256 || countFirstMesh == 258 || countFirstMesh == 259 || countFirstMesh == 261 || countFirstMesh == 263 || countFirstMesh == 266) && op == "solid") {
                 xHitbox[1] = cpyAllHitboxes[1][0]
                 zHitbox[1] = cpyAllHitboxes[1][1]
             }
@@ -1465,6 +1465,7 @@ class Labyrinth {
         wallsBig[67].rotateLocal(0f, Math.toRadians(90f), 0f)
         wallsBig[67].translateGlobal(Vector3f(-8f, 0f, 60f))
         wallsBig[68].translateGlobal(Vector3f(-4f, 0f, 64f))
+
 
         wallsBig[69].translateGlobal(Vector3f(124f, 0f, 56f))
         wallsBig[70].rotateLocal(0f, Math.toRadians(90f), 0f)

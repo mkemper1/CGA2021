@@ -83,7 +83,7 @@ class Scene(private val window: GameWindow) {
 
     /** labyrinth */
     private val run = Labyrinth()
-    private val rnd = (1..4).random()
+    private val rnd = (4..4).random()
     private var buttonSpawn = mutableListOf<Vector3f>()
     private var exitSpawn = mutableListOf<Vector3f>()
 
@@ -347,7 +347,7 @@ class Scene(private val window: GameWindow) {
                 sprint()
                 playerMovement()
                 for (obj in objList) {
-                    run.collision(player, obj, "solid", playerSpeed)
+                    //run.collision(player, obj, "solid", playerSpeed)
                     run.collision(portal, player, "gameOver", playerSpeed)
                 }
                 player.translateLocal(Vector3f(0.0f, 0.0f, -playerSpeed))
