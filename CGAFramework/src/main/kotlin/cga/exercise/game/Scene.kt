@@ -347,7 +347,7 @@ class Scene(private val window: GameWindow) {
                 sprint()
                 playerMovement()
                 for (obj in objList) {
-                    //run.collision(player, obj, "solid", playerSpeed)
+                    run.collision(player, obj, "solid", playerSpeed)
                     run.collision(portal, player, "gameOver", playerSpeed)
                 }
                 player.translateLocal(Vector3f(0.0f, 0.0f, -playerSpeed))

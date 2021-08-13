@@ -349,7 +349,7 @@ class Labyrinth {
         var skip = false
 
         for (x in cpyObjList) {
-            /** horizontal Walls (walls - wallsBig) */
+            /** horizontal Walls (walls - wallsBig)  */
             if (x == firstMesh && (countFirstMesh in 0..94 || countFirstMesh in 196..225 || countFirstMesh == 257 || countFirstMesh == 260 || countFirstMesh == 262 || countFirstMesh == 264 || countFirstMesh == 265 || countFirstMesh == 267)) {
                 xHitbox[0] = cpyAllHitboxes[0][0]
                 zHitbox[0] = cpyAllHitboxes[0][1]
